@@ -22,6 +22,8 @@ class Plan {
         const vector<Facility*> &getFacilities() const;
         void addFacility(Facility* facility);
         const string toString() const;
+        Plan& operator=(const Plan& other);
+
 
     private:
         int plan_id;
