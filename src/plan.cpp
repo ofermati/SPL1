@@ -14,7 +14,7 @@ Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *sele
     , life_quality_score(0) , economy_score(0) , environment_score(0)
     {}
 
-Plan& operator=(const Plan& other) {
+Plan& Plan::operator=(const Plan& other) {
     if (this == &other) { // Self-assignment check
         return *this; // Return the current object as a reference
     }
@@ -54,7 +54,7 @@ Plan& operator=(const Plan& other) {
     for (auto facility : other.underConstruction) {
         this->underConstruction.push_back(new Facility(*facility));
     }
-
+    
     return *this; // Return the current object as a reference
 }
 

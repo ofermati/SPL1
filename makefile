@@ -4,8 +4,8 @@ all: clean compile link
 clean: 
 	rm -f bin/*.o
 compile:
-	g++ -g -Wall -Weffc++ -std=c++11 -c -Include -o bin/test.o src/test.cpp
-	g++ -g -Wall -Weffc++ -std=c++11 -c -Include -o bin/SelectionPolicy.o src/SelectionPolicy.cpp
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/test.o src/test.cpp
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/SelectionPolicy.o src/SelectionPolicy.cpp
 link:
 	g++ -o bin/SelectionPolicy bin/test.o
 run:
