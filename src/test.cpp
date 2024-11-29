@@ -1,52 +1,76 @@
-#include <iostream>
+#include "Plan.h"
 #include "Facility.h"
 #include "Settlement.h"
+#include "SelectionPolicy.h"
+#include <iostream>
+#include <vector>
+#include <cassert>
 
 using namespace std;
 
-void testFacility() {
-    cout << "Testing Facility Class..." << endl;
-
-    // Create a mock Settlement
+// פונקציה פשוטה לבדיקת פונקציית step
+void testStep() {
     Settlement settlement("TestSettlement", SettlementType::CITY);
+    NaiveSelection selectionPolicy;
+    vector<FacilityType> facilityOptions = {
+        FacilityType("Park", FacilityCategory::ENVIRONMENT, 10, 5, 0, 7),
+        FacilityType("Hospital", FacilityCategory::ECONOMY, 15, 8, 10, 3)
+    };
+    Plan plan(1, settlement, &selectionPolicy, facilityOptions);
 
-    // Test Facility Constructor with parameters
-    Facility facility1("Library", "TestSettlement", FacilityCategory::LIFE_QUALITY, 10, 20, 15, 5);
-    cout << "Facility Name: " << facility1.getName() << endl;
-    cout << "Settlement Name: " << facility1.getSettlementName() << endl;
-    cout << "Category: LIFE_QUALITY" << endl;
-    cout << "Cost: " << facility1.getCost() << endl;
-    cout << "Life Quality Score: " << facility1.getLifeQualityScore() << endl;
-    cout << "Economy Score: " << facility1.getEconomyScore() << endl;
-    cout << "Environment Score: " << facility1.getEnvironmentScore() << endl;
-    cout << "Initial Status: " 
-         << (facility1.getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS ? "UNDER_CONSTRUCTIONS" : "OPERATIONAL") 
-         << endl;
+    // בדיקה ראשונית
+    assert(plan.getFacilities().empty() && "Facilities should be empty at initialization");
 
-    // Test Facility setStatus() and getStatus()
-    facility1.setStatus(FacilityStatus::OPERATIONAL);
-    cout << "Updated Status: " 
-         << (facility1.getStatus() == FacilityStatus::OPERATIONAL ? "OPERATIONAL" : "UNDER_CONSTRUCTIONS") 
-         << endl;
+    // ביצוע שלב ראשון
+    plan.step();
 
-    // Test step() method (if implemented)
-    cout << "Testing step() method..." << endl;
-    FacilityStatus result = facility1.step();
-    cout << "Step result: " 
-         << (result == FacilityStatus::OPERATIONAL ? "OPERATIONAL" : "UNDER_CONSTRUCTIONS") 
-         << endl;
+    // בדיקה שהסטטוס נשאר "AVAILABLE" ושיש מתקנים בתהליך בנייה
+    assert(plan.toString().find("AVAILABLE") != string::npos && "Plan should be AVAILABLE after step");
+    assert(plan.toString().find("UNDER_CONSTRUCTION") != string::npos && "Facilities should be under construction");
 
-    // Test toString() method
-    cout << "Facility Info: " << facility1.toString() << endl;
+    // ביצוע שלב נוסף ובדיקה שמתקנים מתקדמים
+    plan.step();
+    assert(!plan.getFacilities().empty() && "Facilities should not be empty after construction steps");
 
-    cout << "Facility Class Test Completed." << endl;
+    cout << "testStep passed.\n";
+}
+
+// פונקציה לבדיקת יצירת תוכנית עם ישוב
+void testSettlementIntegration() {
+    Settlement settlement("TestVillage", SettlementType::VILLAGE);
+    NaiveSelection selectionPolicy;
+    vector<FacilityType> facilityOptions = {
+        FacilityType("School", FacilityCategory::ECONOMY, 12, 6, 8, 2)
+    };
+    Plan plan(2, settlement, &selectionPolicy, facilityOptions);
+
+    // בדיקת נתוני הישוב
+    assert(plan.toString().find("TestVillage") != string::npos && "Settlement name should match");
+    assert(plan.toString().find("Village") != string::npos && "Settlement type should match");
+
+    cout << "testSettlementIntegration passed.\n";
+}
+
+// פונקציה לבדיקת הדפסת מצב
+void testPrintStatus() {
+    Settlement settlement("TestSettlement", SettlementType::METROPOLIS);
+    NaiveSelection selectionPolicy;
+    vector<FacilityType> facilityOptions = {
+        FacilityType("Library", FacilityCategory::ENVIRONMENT, 8, 4, 0, 6)
+    };
+    Plan plan(3, settlement, &selectionPolicy, facilityOptions);
+
+    cout << "Expected: Available\nActual: ";
+    plan.printStatus();
+    cout << "\nPrint status test passed.\n";
 }
 
 int main() {
-    try {
-        testFacility();
-    } catch (const exception &e) {
-        cerr << "Test failed: " << e.what() << endl;
-    }
+    // קריאה לפונקציות הבדיקה
+    testStep();
+    testSettlementIntegration();
+    testPrintStatus();
+
+    cout << "All tests passed successfully.\n";
     return 0;
 }

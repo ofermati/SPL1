@@ -38,7 +38,7 @@ void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy){
 
 void Plan::step(){
     if (status == PlanStatus::AVALIABLE){
-        while (underConstruction.size() <= static_cast<int>(settlement.getType()) + 1) {
+        while (underConstruction.size() <= static_cast<size_t>(settlement.getType()) + 1) {
             Facility *newFac = new Facility(selectionPolicy->selectFacility(facilityOptions), settlement.getName());
             addFacility(newFac);
         }
@@ -49,7 +49,7 @@ void Plan::step(){
             underConstruction.erase(underConstruction.begin() + i);
         }
     }
-    if (underConstruction.size() == static_cast<int>(settlement.getType()) + 1){
+    if (underConstruction.size() == static_cast<size_t>(settlement.getType()) + 1){
         status = PlanStatus::BUSY;
     }
     else{
@@ -111,3 +111,4 @@ const string Plan::toString() const
     }
 
     return result;
+}
