@@ -1,4 +1,3 @@
-#pragma once
 #include "Plan.h"
 #include <vector>
 #include "Facility.h"
@@ -13,6 +12,9 @@ Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *sele
     , facilityOptions(facilityOptions) , status(PlanStatus::AVALIABLE) //האם צריך את שאר השדות לאתחל כרשימות ריקות 
     , life_quality_score(0) , economy_score(0) , environment_score(0)
     {}
+
+Plan::Plan(Plan &other)
+    :    Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions){}
 
 Plan& Plan::operator=(const Plan& other) {
     if (this == &other) { // Self-assignment check
@@ -36,7 +38,6 @@ Plan& Plan::operator=(const Plan& other) {
     this->life_quality_score = other.life_quality_score;
     this->economy_score = other.economy_score;
     this->environment_score = other.environment_score;
-    this->facilityOptions = other.facilityOptions;
 
     // Deep copy the selectionPolicy
     if (other.selectionPolicy) {
@@ -54,7 +55,7 @@ Plan& Plan::operator=(const Plan& other) {
     for (auto facility : other.underConstruction) {
         this->underConstruction.push_back(new Facility(*facility));
     }
-    
+
     return *this; // Return the current object as a reference
 }
 
@@ -79,11 +80,11 @@ void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy){
 void Plan::step(){
     if (status == PlanStatus::AVALIABLE){
         while( underConstruction.size() <= static_cast<int>(settlement.getType())+1){
-            Facility newFac = Facility(selectionPolicy->selectFacility(facilityOptions),settlement.getName());
-            underConstruction.push_back(&newFac);
+            Facility* newFac = new Facility(selectionPolicy->selectFacility(facilityOptions),settlement.getName());
+            underConstruction.push_back(newFac);
         }
     }
-    for(int i=0 ; i<=underConstruction.size(); i++ ){
+    for(int i = underConstruction.size() - 1; i >= 0; i-- ){
         if (underConstruction[i]->step() == FacilityStatus::OPERATIONAL){
             facilities.push_back(underConstruction[i]);
             underConstruction.erase(underConstruction.begin()+i);
@@ -126,8 +127,12 @@ const string Plan::toString() const {
     if (!facilities.empty()) {
         for (const Facility* facility : facilities) {
             result += "FacilityName: " + facility->toString() + "\n";  
-            result += "FacilityStatus: " + std::string((facility->getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS ? "UNDER_CONSTRUCTION" : "OPERATIONAL")) + "\n";  // Corrected spelling
+            result += "FacilityStatus: OPERATIONAL\n";  // Corrected spelling
         }
+        for (const Facility* facility : underConstruction) {
+            result += "FacilityName: " + facility->toString() + "\n";  
+            result += "FacilityStatus: UNDER_CONSTRUCTION\n";  // Corrected spelling
+        } 
     } else {
         result += "No facilities available.\n";  // Add a message if no facilities are present
     }
