@@ -1,57 +1,41 @@
 #include <iostream>
-#include "Plan.h"
-#include "Settlement.h"
-#include "SelectionPolicy.h"
 #include "Facility.h"
+#include "Settlement.h"
 
-// Function to test Plan functionality
-void testPlan() {
+void testFacility() {
     // Create a Settlement
-    Settlement settlement("Test Settlement", SettlementType::CITY);
+    Settlement settlement("TestSettlement", SettlementType::CITY);
 
-    // Create Facility Types
-    FacilityType facilityType1("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30);
-    FacilityType facilityType2("Facility2", FacilityCategory::ECONOMY, 200, 15, 25, 35);
-    FacilityType facilityType3("Facility3", FacilityCategory::ENVIRONMENT, 150, 20, 30, 40);
+    // Create a FacilityType
+    FacilityType facilityType("Library", FacilityCategory::LIFE_QUALITY, 150, 10, 5, 7);
 
-    std::vector<FacilityType> facilityOptions = {facilityType1, facilityType2, facilityType3};
+    // Test Facility Constructor
+    Facility facility(facilityType, settlement.getName());
 
-    // Create a Selection Policy
-    NaiveSelection naiveSelection;
+    // Check initial status
+    std::cout << "Facility Name: " << facility.getName() << std::endl;
+    std::cout << "Facility Settlement: " << facility.getSettlementName() << std::endl;
+    std::cout << "Initial Status: " << (facility.getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS ? "Under Construction" : "Operational") << std::endl;
 
-    // Create a Plan
-    Plan plan(1, settlement, &naiveSelection, facilityOptions);
+    // Change status and test
+    facility.setStatus(FacilityStatus::OPERATIONAL);
+    std::cout << "Updated Status: " << (facility.getStatus() == FacilityStatus::OPERATIONAL ? "Operational" : "Error") << std::endl;
 
-    // Print initial state
-    std::cout << "Initial Plan State:\n" << plan.toString() << "\n";
+    // Test the Facility's scores
+    std::cout << "Life Quality Score: " << facilityType.getLifeQualityScore() << std::endl;
+    std::cout << "Economy Score: " << facilityType.getEconomyScore() << std::endl;
+    std::cout << "Environment Score: " << facilityType.getEnvironmentScore() << std::endl;
 
-    // Add facilities
-    Facility facility1(facilityType1, settlement.getName());
-    Facility facility2(facilityType2, settlement.getName());
-    facility1.setStatus(FacilityStatus::UNDER_CONSTRUCTIONS);
-    facility2.setStatus(FacilityStatus::OPERATIONAL);
-
-    plan.addFacility(&facility1);
-    plan.addFacility(&facility2);
-
-    // Print state after adding facilities
-    std::cout << "\nPlan State After Adding Facilities:\n" << plan.toString() << "\n";
-
-    // Step through the Plan
-    plan.step();
-
-    // Print state after stepping
-    std::cout << "\nPlan State After Step:\n" << plan.toString() << "\n";
-
-    // Test setSelectionPolicy
-    BalancedSelection balancedSelection(10, 15, 20);
-    plan.setSelectionPolicy(&balancedSelection);
-
-    // Print state after changing selection policy
-    std::cout << "\nPlan State After Changing Selection Policy:\n" << plan.toString() << "\n";
+    // Test toString
+    std::cout << "Facility Info: " << facility.toString() << std::endl;
 }
 
 int main() {
-    testPlan();
+    try {
+        testFacility();
+    } catch (const std::exception &e) {
+        std::cerr << "Test failed: " << e.what() << std::endl;
+    }
+
     return 0;
 }
