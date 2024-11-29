@@ -25,4 +25,5 @@ string Settlement::STtostring (SettlementType type) const{
         case SettlementType::CITY: return "City";
         case SettlementType::METROPOLIS: return "Metropolis";
     }
+    return "Unknown";
 }

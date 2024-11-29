@@ -9,8 +9,7 @@ using std::vector;
 /*************************************** NaiveSelection *****************************************/
 // Constrector:
 NaiveSelection::NaiveSelection() : lastSelectedIndex(0)
-{
-}
+{}
 
 // Methods:
 const FacilityType &NaiveSelection::selectFacility(const vector<FacilityType> &facilitiesOptions)
@@ -33,20 +32,20 @@ NaiveSelection *NaiveSelection::clone() const
     return other;
 }
 
+
 /*************************************** BalancedSelection *****************************************/
 
 BalancedSelection::BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore)
     : LifeQualityScore(LifeQualityScore), EconomyScore(EconomyScore), EnvironmentScore(EnvironmentScore) {}
 
-const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType> &facilitiesOptions)
-{
+const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType> &facilitiesOptions){
     if (facilitiesOptions.empty())
     {
         throw std::invalid_argument("facilitiesOptions cannot be empty");
     }
     int minIndex = 0;
     int minBalance = Balance(facilitiesOptions[0], LifeQualityScore, EconomyScore, EnvironmentScore);
-    for (int i = 1; i < facilitiesOptions.size(); i++)
+    for (size_t i = 1; i < facilitiesOptions.size(); i++)
     {
         int currentBalance = Balance(facilitiesOptions[i], LifeQualityScore, EconomyScore, EnvironmentScore);
         if (currentBalance < minBalance)
@@ -61,8 +60,7 @@ const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType>
     return facilitiesOptions[minIndex];
 }
 
-int Balance(const FacilityType &type, int LifeQualityScore, int EconomyScore, int EnvironmentScore)
-{
+int BalancedSelection::Balance(const FacilityType &type, int LifeQualityScore, int EconomyScore, int EnvironmentScore){
     int LifeQuality = type.getLifeQualityScore() + LifeQualityScore;
     int Economy = type.getEconomyScore() + EconomyScore;
     int Environment = type.getEnvironmentScore() + EnvironmentScore;
@@ -74,13 +72,11 @@ int Balance(const FacilityType &type, int LifeQualityScore, int EconomyScore, in
     return maxDiff;
 }
 
-const string BalancedSelection::toString() const
-{
+const string BalancedSelection::toString() const{
     return ("this is Balanced Selection. the life quality score is" + std::to_string(LifeQualityScore) + "the economy score is" + std::to_string(EconomyScore) + "the enviroment score is" + std::to_string(EnvironmentScore));
 }
 
-BalancedSelection *BalancedSelection::clone() const
-{
+BalancedSelection *BalancedSelection::clone() const{
     BalancedSelection *other = new BalancedSelection(*this);
     // in this case, the * means look at the values at my address.
     return other;
@@ -104,6 +100,7 @@ const FacilityType &EconomySelection::selectFacility(const vector<FacilityType> 
         if (i == lastSelectedIndex)
             throw std::runtime_error("No facility with ECONOMY category found.");
     }
+    return facilitiesOptions[i]; //shuldnt get this far
 }
 
 const string EconomySelection::toString() const
@@ -117,6 +114,7 @@ EconomySelection *EconomySelection::clone() const
     // in this case, the * means look at the values at my address.
     return other;
 }
+
 
 /*************************************** SustainabilitySelection *****************************************/
 
@@ -136,6 +134,7 @@ const FacilityType &SustainabilitySelection::selectFacility(const vector<Facilit
         if (i == lastSelectedIndex)
             throw std::runtime_error("No facility with ENVIRONMENT category found.");
     }
+    return facilitiesOptions[i]; //shuldnt get this far
 }
 
 const string SustainabilitySelection::toString() const {

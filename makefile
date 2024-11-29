@@ -1,6 +1,6 @@
 # Please implement your Makefile rules and targets below.
 # Customize this file to define how to build your project.
-all: clean bin compile link
+all: clean bin compile link run
 
 clean: 
 	rm -f bin/*.o bin/test

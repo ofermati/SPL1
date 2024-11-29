@@ -2,40 +2,51 @@
 #include "Facility.h"
 #include "Settlement.h"
 
+using namespace std;
+
 void testFacility() {
-    // Create a Settlement
+    cout << "Testing Facility Class..." << endl;
+
+    // Create a mock Settlement
     Settlement settlement("TestSettlement", SettlementType::CITY);
 
-    // Create a FacilityType
-    FacilityType facilityType("Library", FacilityCategory::LIFE_QUALITY, 150, 10, 5, 7);
+    // Test Facility Constructor with parameters
+    Facility facility1("Library", "TestSettlement", FacilityCategory::LIFE_QUALITY, 10, 20, 15, 5);
+    cout << "Facility Name: " << facility1.getName() << endl;
+    cout << "Settlement Name: " << facility1.getSettlementName() << endl;
+    cout << "Category: LIFE_QUALITY" << endl;
+    cout << "Cost: " << facility1.getCost() << endl;
+    cout << "Life Quality Score: " << facility1.getLifeQualityScore() << endl;
+    cout << "Economy Score: " << facility1.getEconomyScore() << endl;
+    cout << "Environment Score: " << facility1.getEnvironmentScore() << endl;
+    cout << "Initial Status: " 
+         << (facility1.getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS ? "UNDER_CONSTRUCTIONS" : "OPERATIONAL") 
+         << endl;
 
-    // Test Facility Constructor
-    Facility facility(facilityType, settlement.getName());
+    // Test Facility setStatus() and getStatus()
+    facility1.setStatus(FacilityStatus::OPERATIONAL);
+    cout << "Updated Status: " 
+         << (facility1.getStatus() == FacilityStatus::OPERATIONAL ? "OPERATIONAL" : "UNDER_CONSTRUCTIONS") 
+         << endl;
 
-    // Check initial status
-    std::cout << "Facility Name: " << facility.getName() << std::endl;
-    std::cout << "Facility Settlement: " << facility.getSettlementName() << std::endl;
-    std::cout << "Initial Status: " << (facility.getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS ? "Under Construction" : "Operational") << std::endl;
+    // Test step() method (if implemented)
+    cout << "Testing step() method..." << endl;
+    FacilityStatus result = facility1.step();
+    cout << "Step result: " 
+         << (result == FacilityStatus::OPERATIONAL ? "OPERATIONAL" : "UNDER_CONSTRUCTIONS") 
+         << endl;
 
-    // Change status and test
-    facility.setStatus(FacilityStatus::OPERATIONAL);
-    std::cout << "Updated Status: " << (facility.getStatus() == FacilityStatus::OPERATIONAL ? "Operational" : "Error") << std::endl;
+    // Test toString() method
+    cout << "Facility Info: " << facility1.toString() << endl;
 
-    // Test the Facility's scores
-    std::cout << "Life Quality Score: " << facilityType.getLifeQualityScore() << std::endl;
-    std::cout << "Economy Score: " << facilityType.getEconomyScore() << std::endl;
-    std::cout << "Environment Score: " << facilityType.getEnvironmentScore() << std::endl;
-
-    // Test toString
-    std::cout << "Facility Info: " << facility.toString() << std::endl;
+    cout << "Facility Class Test Completed." << endl;
 }
 
 int main() {
     try {
         testFacility();
-    } catch (const std::exception &e) {
-        std::cerr << "Test failed: " << e.what() << std::endl;
+    } catch (const exception &e) {
+        cerr << "Test failed: " << e.what() << endl;
     }
-
     return 0;
 }
