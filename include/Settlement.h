@@ -19,7 +19,7 @@ class Settlement {
         const string &getName() const;
         SettlementType getType() const;
         const string toString() const;
-        string Settlement::STtostring (SettlementType type) const;
+        string STtostring (SettlementType type) const;
 
         private:
             const string name;

@@ -38,8 +38,7 @@ NaiveSelection *NaiveSelection::clone() const
 BalancedSelection::BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore)
     : LifeQualityScore(LifeQualityScore), EconomyScore(EconomyScore), EnvironmentScore(EnvironmentScore) {}
 
-const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType> &facilitiesOptions)
-{
+const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType> &facilitiesOptions){
     if (facilitiesOptions.empty())
     {
         throw std::invalid_argument("facilitiesOptions cannot be empty");
@@ -61,8 +60,7 @@ const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType>
     return facilitiesOptions[minIndex];
 }
 
-int Balance(const FacilityType &type, int LifeQualityScore, int EconomyScore, int EnvironmentScore)
-{
+int BalancedSelection::Balance(const FacilityType &type, int LifeQualityScore, int EconomyScore, int EnvironmentScore){
     int LifeQuality = type.getLifeQualityScore() + LifeQualityScore;
     int Economy = type.getEconomyScore() + EconomyScore;
     int Environment = type.getEnvironmentScore() + EnvironmentScore;
@@ -74,13 +72,11 @@ int Balance(const FacilityType &type, int LifeQualityScore, int EconomyScore, in
     return maxDiff;
 }
 
-const string BalancedSelection::toString() const
-{
+const string BalancedSelection::toString() const{
     return ("this is Balanced Selection. the life quality score is" + std::to_string(LifeQualityScore) + "the economy score is" + std::to_string(EconomyScore) + "the enviroment score is" + std::to_string(EnvironmentScore));
 }
 
-BalancedSelection *BalancedSelection::clone() const
-{
+BalancedSelection *BalancedSelection::clone() const{
     BalancedSelection *other = new BalancedSelection(*this);
     // in this case, the * means look at the values at my address.
     return other;

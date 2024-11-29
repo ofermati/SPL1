@@ -1,87 +1,96 @@
+#include "Plan.h"
 #include <iostream>
-#include <vector>
-#include "SelectionPolicy.h"
-#include "Facility.h"
-using std::vector;
+#include <cassert> // For assertions
 
-using namespace std;
+// Simple test framework functions
+int totalTests = 0;
+int passedTests = 0;
 
-// Mock FacilityType class for testing purposes
-class MockFacilityType : public FacilityType {
-public:
-    MockFacilityType(const string &name, FacilityCategory category, int price, int lifeQualityScore, int economyScore, int environmentScore)
-        : FacilityType(name, category, price, lifeQualityScore, economyScore, environmentScore) {}
-};
-
-// Function to test NaiveSelection
-void testNaiveSelection() {
-    NaiveSelection policy;
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
-
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "NaiveSelection selected: " << selected.getName() << endl;
+void runTest(const std::string &testName, bool condition) {
+    totalTests++;
+    if (condition) {
+        std::cout << "[PASSED] " << testName << "\n";
+        passedTests++;
+    } else {
+        std::cout << "[FAILED] " << testName << "\n";
+    }
 }
 
-// Function to test BalancedSelection
-void testBalancedSelection() {
-    BalancedSelection policy(10, 20, 30);
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
-
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "BalancedSelection selected: " << selected.getName() << endl;
+void printSummary() {
+    std::cout << passedTests << " / " << totalTests << " tests passed.\n";
 }
 
-// Function to test EconomySelection
-void testEconomySelection() {
-    EconomySelection policy;
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
-
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "EconomySelection selected: " << selected.getName() << endl;
+// Tests
+void testDefaultConstructor() {
+    runTest("Default Constructor", []() {
+        Plan defaultPlan;
+        return defaultPlan.getlifeQualityScore() == 0 &&
+               defaultPlan.getEconomyScore() == 0 &&
+               defaultPlan.getEnvironmentScore() == 0 &&
+               defaultPlan.getFacilities().empty();
+    }());
 }
 
-// Function to test SustainabilitySelection
-void testSustainabilitySelection() {
-    SustainabilitySelection policy;
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
+void testParameterizedConstructor() {
+    runTest("Parameterized Constructor", []() {
+        Settlement settlement("TestTown", SettlementType::CITY); // Adjust SettlementType if needed
+        SelectionPolicy *policy = new BalancedSelection(0,0,0); // Replace with your actual policy type
+        std::vector<FacilityType> facilityOptions = {FacilityType("HOSPITAL", FacilityCategory::ENVIRONMENT, 1000, 80, 75, 90),  FacilityType("SCHOOL", FacilityCategory::LIFE_QUALITY, 500, 85, 80, 70)};
 
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "SustainabilitySelection selected: " << selected.getName() << endl;
+        Plan paramPlan(1, settlement, policy, facilityOptions);
+
+        bool result = paramPlan.getlifeQualityScore() == 0 &&
+                      paramPlan.getEconomyScore() == 0 &&
+                      paramPlan.getEnvironmentScore() == 0 &&
+                      paramPlan.getFacilities().empty();
+        delete policy; // Cleanup
+        return result;
+    }());
 }
 
-// Main function to run all tests
+void testCopyConstructor() {
+    runTest("Copy Constructor", []() {
+        Settlement settlement("TestTown", SettlementType::VILLAGE);
+        SelectionPolicy *policy = new EconomySelection(); // Replace with your actual policy type
+        std::vector<FacilityType> facilityOptions = {FacilityType("HOSPITAL", FacilityCategory::ENVIRONMENT, 1000, 80, 75, 90)};
+
+        Plan originalPlan(1, settlement, policy, facilityOptions);
+        Plan copiedPlan(originalPlan); // Correct usage of the copy constructor
+
+        bool result = copiedPlan.getlifeQualityScore() == originalPlan.getlifeQualityScore() &&
+                      copiedPlan.getEconomyScore() == originalPlan.getEconomyScore() &&
+                      copiedPlan.getEnvironmentScore() == originalPlan.getEnvironmentScore() &&
+                      copiedPlan.getFacilities().size() == originalPlan.getFacilities().size() &&
+                      copiedPlan.getFacilities().data() != originalPlan.getFacilities().data(); // Ensure deep copy
+
+        delete policy; // Cleanup
+        return result;
+    }());
+}
+
+void testToString() {
+    runTest("ToString Method", []() {
+        Settlement settlement("TestTown", SettlementType::VILLAGE);
+        SelectionPolicy *policy = new BalancedSelection(0,0,0); // Replace with your actual policy type
+        std::vector<FacilityType> facilityOptions = {FacilityType("HOSPITAL", FacilityCategory::ENVIRONMENT, 1000, 80, 75, 90)};
+        Plan testPlan(1, settlement, policy, facilityOptions);
+        std::string output = testPlan.toString();
+
+        bool result = output.find("PlanID: 1") != std::string::npos &&
+                      output.find("SettlementName: TestTown") != std::string::npos;
+
+        delete policy; // Cleanup
+        return result;
+    }());
+}
+
+// Main Function
 int main() {
-    cout << "Testing NaiveSelection:" << endl;
-    testNaiveSelection();
-    cout << endl;
+    testDefaultConstructor();
+    testParameterizedConstructor();
+    testCopyConstructor();
+    testToString();
 
-    cout << "Testing BalancedSelection:" << endl;
-    testBalancedSelection();
-    cout << endl;
-
-    cout << "Testing EconomySelection:" << endl;
-    testEconomySelection();
-    cout << endl;
-
-    cout << "Testing SustainabilitySelection:" << endl;
-    testSustainabilitySelection();
-    cout << endl;
-
+    printSummary();
     return 0;
 }
