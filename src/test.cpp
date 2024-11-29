@@ -1,52 +1,69 @@
 #include <iostream>
+#include <vector>
+#include "SelectionPolicy.h"
 #include "Facility.h"
-#include "Settlement.h"
 
 using namespace std;
 
-void testFacility() {
-    cout << "Testing Facility Class..." << endl;
-
-    // Create a mock Settlement
-    Settlement settlement("TestSettlement", SettlementType::CITY);
-
-    // Test Facility Constructor with parameters
-    Facility facility1("Library", "TestSettlement", FacilityCategory::LIFE_QUALITY, 10, 20, 15, 5);
-    cout << "Facility Name: " << facility1.getName() << endl;
-    cout << "Settlement Name: " << facility1.getSettlementName() << endl;
-    cout << "Category: LIFE_QUALITY" << endl;
-    cout << "Cost: " << facility1.getCost() << endl;
-    cout << "Life Quality Score: " << facility1.getLifeQualityScore() << endl;
-    cout << "Economy Score: " << facility1.getEconomyScore() << endl;
-    cout << "Environment Score: " << facility1.getEnvironmentScore() << endl;
-    cout << "Initial Status: " 
-         << (facility1.getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS ? "UNDER_CONSTRUCTIONS" : "OPERATIONAL") 
-         << endl;
-
-    // Test Facility setStatus() and getStatus()
-    facility1.setStatus(FacilityStatus::OPERATIONAL);
-    cout << "Updated Status: " 
-         << (facility1.getStatus() == FacilityStatus::OPERATIONAL ? "OPERATIONAL" : "UNDER_CONSTRUCTIONS") 
-         << endl;
-
-    // Test step() method (if implemented)
-    cout << "Testing step() method..." << endl;
-    FacilityStatus result = facility1.step();
-    cout << "Step result: " 
-         << (result == FacilityStatus::OPERATIONAL ? "OPERATIONAL" : "UNDER_CONSTRUCTIONS") 
-         << endl;
-
-    // Test toString() method
-    cout << "Facility Info: " << facility1.toString() << endl;
-
-    cout << "Facility Class Test Completed." << endl;
+// Utility function to print the facilities vector
+void printFacilities(const vector<FacilityType> &facilities) {
+    cout << "Facilities:\n";
+    for (const auto &facility : facilities) {
+        cout << "  " << facility.getName()
+             << " | Category: " << static_cast<int>(facility.getCategory())
+             << " | Life Quality: " << facility.getLifeQualityScore()
+             << " | Economy: " << facility.getEconomyScore()
+             << " | Environment: " << facility.getEnvironmentScore() << "\n";
+    }
 }
 
-int main() {
-    try {
-        testFacility();
-    } catch (const exception &e) {
-        cerr << "Test failed: " << e.what() << endl;
+// Test function for SelectionPolicy
+void testSelectionPolicy(SelectionPolicy *policy, vector<FacilityType> &facilities) {
+    cout << "Testing " << policy->toString() << ":\n";
+    cout << "Initial Facilities:\n";
+    printFacilities(facilities);
+    cout << "\n";
+
+    // Perform 5 steps of selection
+    for (int i = 0; i < 5; ++i) {
+        cout << "Step " << (i + 1) << ":\n";
+        try {
+            const FacilityType &selected = policy->selectFacility(facilities);
+            cout << "  Selected Facility: " << selected.getName() << "\n";
+        } catch (const std::exception &e) {
+            cout << "  Error: " << e.what() << "\n";
+        }
+        cout << "\n";
     }
+
+    delete policy; // Clean up the dynamically allocated policy
+}
+
+// Main function to run the test
+int main() {
+    vector<FacilityType> facilities = {
+        FacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 50, 30, 20),
+        FacilityType("Facility2", FacilityCategory::ECONOMY, 150, 40, 60, 10),
+        FacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 30, 20, 50),
+        FacilityType("Facility4", FacilityCategory::LIFE_QUALITY, 120, 70, 20, 30),
+        FacilityType("Facility5", FacilityCategory::ECONOMY, 130, 30, 50, 40),
+    };
+
+    cout << "Testing NaiveSelection:\n";
+    testSelectionPolicy(new NaiveSelection(), facilities);
+    cout << "\n";
+
+    cout << "Testing BalancedSelection:\n";
+    testSelectionPolicy(new BalancedSelection(0, 0, 0), facilities);
+    cout << "\n";
+
+    cout << "Testing EconomySelection:\n";
+    testSelectionPolicy(new EconomySelection(), facilities);
+    cout << "\n";
+
+    cout << "Testing SustainabilitySelection:\n";
+    testSelectionPolicy(new SustainabilitySelection(), facilities);
+    cout << "\n";
+
     return 0;
 }

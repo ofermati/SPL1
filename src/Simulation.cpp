@@ -10,7 +10,7 @@ Simulation(const string &configFilePath)
 
     std::string line;
     while (std::getline(file, line)) {
-        if (line[0]==#) continue; //כדי להתעלם מהערות שהם הוסיפו
+        if (line[0]=="#") continue; //כדי להתעלם מהערות שהם הוסיפו
 
         std::istringstream ss(line); //אובייקט מיוחד שמאפשר לנו לחלץ מילה מילה מהשורה
         std::string type; //נאתחל משתנה שישמש לאחסון המילה שנחלץ בכל פעם מן השורה
@@ -19,7 +19,8 @@ Simulation(const string &configFilePath)
         if(type == "settlement"){
             std::string name;
             int SettlementType;
-            ss<<name<<SettlementType;
+            ss >> name >> SettlementType;
+
         }
 
 
