@@ -1,86 +1,57 @@
 #include <iostream>
-#include <vector>
+#include "Plan.h"
+#include "Settlement.h"
 #include "SelectionPolicy.h"
 #include "Facility.h"
 
-using namespace std;
+// Function to test Plan functionality
+void testPlan() {
+    // Create a Settlement
+    Settlement settlement("Test Settlement", SettlementType::CITY);
 
-// Mock FacilityType class for testing purposes
-class MockFacilityType : public FacilityType {
-public:
-    MockFacilityType(const string &name, FacilityCategory category, int price, int lifeQualityScore, int economyScore, int environmentScore)
-        : FacilityType(name, category, price, lifeQualityScore, economyScore, environmentScore) {}
-};
+    // Create Facility Types
+    FacilityType facilityType1("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30);
+    FacilityType facilityType2("Facility2", FacilityCategory::ECONOMY, 200, 15, 25, 35);
+    FacilityType facilityType3("Facility3", FacilityCategory::ENVIRONMENT, 150, 20, 30, 40);
 
-// Function to test NaiveSelection
-void testNaiveSelection() {
-    NaiveSelection policy;
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
+    std::vector<FacilityType> facilityOptions = {facilityType1, facilityType2, facilityType3};
 
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "NaiveSelection selected: " << selected.getName() << endl;
+    // Create a Selection Policy
+    NaiveSelection naiveSelection;
+
+    // Create a Plan
+    Plan plan(1, settlement, &naiveSelection, facilityOptions);
+
+    // Print initial state
+    std::cout << "Initial Plan State:\n" << plan.toString() << "\n";
+
+    // Add facilities
+    Facility facility1(facilityType1, settlement.getName());
+    Facility facility2(facilityType2, settlement.getName());
+    facility1.setStatus(FacilityStatus::UNDER_CONSTRUCTIONS);
+    facility2.setStatus(FacilityStatus::OPERATIONAL);
+
+    plan.addFacility(&facility1);
+    plan.addFacility(&facility2);
+
+    // Print state after adding facilities
+    std::cout << "\nPlan State After Adding Facilities:\n" << plan.toString() << "\n";
+
+    // Step through the Plan
+    plan.step();
+
+    // Print state after stepping
+    std::cout << "\nPlan State After Step:\n" << plan.toString() << "\n";
+
+    // Test setSelectionPolicy
+    BalancedSelection balancedSelection(10, 15, 20);
+    plan.setSelectionPolicy(&balancedSelection);
+
+    // Print state after changing selection policy
+    std::cout << "\nPlan State After Changing Selection Policy:\n" << plan.toString() << "\n";
 }
 
-// Function to test BalancedSelection
-void testBalancedSelection() {
-    BalancedSelection policy(10, 20, 30);
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
-
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "BalancedSelection selected: " << selected.getName() << endl;
-}
-
-// Function to test EconomySelection
-void testEconomySelection() {
-    EconomySelection policy;
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
-
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "EconomySelection selected: " << selected.getName() << endl;
-}
-
-// Function to test SustainabilitySelection
-void testSustainabilitySelection() {
-    SustainabilitySelection policy;
-    vector<FacilityType> facilities = {
-        MockFacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 10, 20, 30),
-        MockFacilityType("Facility2", FacilityCategory::ECONOMY, 150, 15, 25, 35),
-        MockFacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 20, 30, 40),
-    };
-
-    const FacilityType &selected = policy.selectFacility(facilities);
-    cout << "SustainabilitySelection selected: " << selected.getName() << endl;
-}
-
-// Main function to run all tests
 int main() {
-    cout << "Testing NaiveSelection:" << endl;
-    testNaiveSelection();
-    cout << endl;
-
-    cout << "Testing BalancedSelection:" << endl;
-    testBalancedSelection();
-    cout << endl;
-
-    cout << "Testing EconomySelection:" << endl;
-    testEconomySelection();
-    cout << endl;
-
-    cout << "Testing SustainabilitySelection:" << endl;
-    testSustainabilitySelection();
-    cout << endl;
-
+    testPlan();
     return 0;
 }

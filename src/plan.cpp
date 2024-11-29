@@ -40,22 +40,19 @@ void Plan::step(){
     if (status == PlanStatus::AVALIABLE){
         while (underConstruction.size() <= static_cast<int>(settlement.getType()) + 1) {
             Facility *newFac = new Facility(selectionPolicy->selectFacility(facilityOptions), settlement.getName());
-            underConstruction.push_back(newFac);
+            addFacility(newFac);
         }
     }
     for (int i = underConstruction.size() - 1; i >= 0; i--){
-        if (underConstruction[i]->step() == FacilityStatus::OPERATIONAL)
-{
-            facilities.push_back(underConstruction[i]);
+        if (underConstruction[i]->step() == FacilityStatus::OPERATIONAL){
+            addFacility(underConstruction[i]);
             underConstruction.erase(underConstruction.begin() + i);
         }
     }
-    if (underConstruction.size() == static_cast<int>(settlement.getType()) + 1)
-    {
+    if (underConstruction.size() == static_cast<int>(settlement.getType()) + 1){
         status = PlanStatus::BUSY;
     }
-    else
-    {
+    else{
         status = PlanStatus::AVALIABLE;
     }
 }
@@ -75,9 +72,13 @@ const vector<Facility *> &Plan::getFacilities() const
     return facilities;
 }
 
-void Plan::addFacility(Facility *facility)
-{
-    !!!!!!!!!!
+void Plan::addFacility(Facility *facility){
+    if (facility->getStatus()==FacilityStatus::UNDER_CONSTRUCTIONS){
+        underConstruction.push_back(facility);
+    }
+    else{
+        facilities.push_back(facility);
+    }
 }
 
 const string Plan::toString() const
