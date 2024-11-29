@@ -5,8 +5,10 @@ clean:
 	rm -f bin/*.o
 compile:
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/test.o src/test.cpp
-	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Plan.o src/Plan.cpp
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/SelectionPolicy.o src/SelectionPolicy.cpp
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Facility.o src/Facility.cpp
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Settlement.o src/Settelment.cpp
 link:
-	g++ -o bin/Plan bin/test.o
+	g++ -o bin/SelectionPolicy bin/test.o bin/SelectionPolicy.o bin/Facility.o bin/Settlement.o
 run:
 	./test
