@@ -1,14 +1,14 @@
 # Please implement your Makefile rules and targets below.
 # Customize this file to define how to build your project.
-all: clean compile link
+all: clean compile link run
 clean: 
 	rm -f bin/*.o
 compile:
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/test.o src/test.cpp
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/SelectionPolicy.o src/SelectionPolicy.cpp
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Facility.o src/Facility.cpp
-	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Settlement.o src/Settelment.cpp
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Settlement.o src/Settlement.cpp
 link:
-	g++ -o bin/SelectionPolicy bin/test.o bin/SelectionPolicy.o bin/Facility.o bin/Settlement.o
+	g++ -o bin/test bin/test.o bin/SelectionPolicy.o bin/Facility.o bin/Settlement.o
 run:
 	./test
