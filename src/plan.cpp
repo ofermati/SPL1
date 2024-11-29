@@ -4,61 +4,21 @@
 #include "Settlement.h"
 #include "SelectionPolicy.h"
 #include <iostream>  // for cout
-using namespace std;  // to use cout directly without std::
+using namespace std; // to use cout directly without std::
 using std::vector;
 
-Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions):
-    plan_id(planId) , settlement(settlement) , selectionPolicy(selectionPolicy) 
-    , facilityOptions(facilityOptions) , status(PlanStatus::AVALIABLE) //האם צריך את שאר השדות לאתחל כרשימות ריקות 
-    , life_quality_score(0) , economy_score(0) , environment_score(0)
-    {}
+Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions) : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy), facilityOptions(facilityOptions), status(PlanStatus::AVALIABLE), life_quality_score(0), economy_score(0), environment_score(0){}
 
 Plan::Plan(Plan &other)
-    :    Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions){}
-
-Plan& Plan::operator=(const Plan& other) {
-    if (this == &other) { // Self-assignment check
-        return *this; // Return the current object as a reference
-    }
-
-    // Clean up existing resources
-    delete selectionPolicy;
-    for (auto facility : facilities) {
-        delete facility;
-    }
-    facilities.clear();
-    for (auto facility : underConstruction) {
-        delete facility;
-    }
-    underConstruction.clear();
-
-    // Copy non-heap members
-    this->plan_id = other.plan_id;
+    : Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions)
+{
     this->status = other.status;
     this->life_quality_score = other.life_quality_score;
     this->economy_score = other.economy_score;
     this->environment_score = other.environment_score;
-
-    // Deep copy the selectionPolicy
-    if (other.selectionPolicy) {
-        this->selectionPolicy = other.selectionPolicy->clone();
-    } else {
-        this->selectionPolicy = nullptr;
-    }
-
-    // Deep copy facilities
-    for (auto facility : other.facilities) {
-        this->facilities.push_back(new Facility(*facility));
-    }
-
-    // Deep copy underConstruction facilities
-    for (auto facility : other.underConstruction) {
-        this->underConstruction.push_back(new Facility(*facility));
-    }
-
-    return *this; // Return the current object as a reference
+    for (auto facility : other.facilities){this->facilities.push_back(new Facility(*facility));}
+    for (auto facility : other.underConstruction){this->underConstruction.push_back(new Facility(*facility));}
 }
-
 
 const int Plan::getlifeQualityScore() const{
     return life_quality_score;
@@ -76,28 +36,32 @@ void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy){
     this->selectionPolicy = selectionPolicy;
 }
 
-
 void Plan::step(){
     if (status == PlanStatus::AVALIABLE){
-        while( underConstruction.size() <= static_cast<int>(settlement.getType())+1){
-            Facility* newFac = new Facility(selectionPolicy->selectFacility(facilityOptions),settlement.getName());
+        while (underConstruction.size() <= static_cast<int>(settlement.getType()) + 1) {
+            Facility *newFac = new Facility(selectionPolicy->selectFacility(facilityOptions), settlement.getName());
             underConstruction.push_back(newFac);
         }
     }
-    for(int i = underConstruction.size() - 1; i >= 0; i-- ){
-        if (underConstruction[i]->step() == FacilityStatus::OPERATIONAL){
+    for (int i = underConstruction.size() - 1; i >= 0; i--){
+        if (underConstruction[i]->step() == FacilityStatus::OPERATIONAL)
+{
             facilities.push_back(underConstruction[i]);
-            underConstruction.erase(underConstruction.begin()+i);
+            underConstruction.erase(underConstruction.begin() + i);
         }
     }
-    if (underConstruction.size() == static_cast<int>(settlement.getType())+1){
+    if (underConstruction.size() == static_cast<int>(settlement.getType()) + 1)
+    {
         status = PlanStatus::BUSY;
-    }else {
+    }
+    else
+    {
         status = PlanStatus::AVALIABLE;
     }
 }
 
-void Plan::printStatus() {
+void Plan::printStatus()
+{
     string output;
     if (status == PlanStatus::AVALIABLE)
         output = "Available";
@@ -106,35 +70,43 @@ void Plan::printStatus() {
     cout << output;
 }
 
-const vector<Facility*> &Plan::getFacilities() const{
+const vector<Facility *> &Plan::getFacilities() const
+{
     return facilities;
 }
 
-void Plan::addFacility(Facility* facility){
+void Plan::addFacility(Facility *facility)
+{
     !!!!!!!!!!
 }
 
-const string Plan::toString() const {
+const string Plan::toString() const
+{
     string result = "PlanID: " + std::to_string(plan_id) + "\n";
-    result += "SettlementName: " + settlement.getName() + "\n"; 
+    result += "SettlementName: " + settlement.getName() + "\n";
     result += "PlanStatus: " + std::string((status == PlanStatus::AVALIABLE ? "AVAILABLE" : "BUSY")) + "\n";
-    result += "SelectionPolicy: " + selectionPolicy->toString() + "\n"; 
+    result += "SelectionPolicy: " + selectionPolicy->toString() + "\n";
     result += "LifeQualityScore: " + std::to_string(life_quality_score) + "\n";
     result += "EconomyScore: " + std::to_string(economy_score) + "\n";
     result += "EnvironmentScore: " + std::to_string(environment_score) + "\n";
-    
+
     // Checking if facilities is not empty before looping through it
-    if (!facilities.empty()) {
-        for (const Facility* facility : facilities) {
-            result += "FacilityName: " + facility->toString() + "\n";  
-            result += "FacilityStatus: OPERATIONAL\n";  // Corrected spelling
+    if (!facilities.empty())
+    {
+        for (const Facility *facility : facilities)
+        {
+            result += "FacilityName: " + facility->toString() + "\n";
+            result += "FacilityStatus: OPERATIONAL\n"; // Corrected spelling
         }
-        for (const Facility* facility : underConstruction) {
-            result += "FacilityName: " + facility->toString() + "\n";  
-            result += "FacilityStatus: UNDER_CONSTRUCTION\n";  // Corrected spelling
-        } 
-    } else {
-        result += "No facilities available.\n";  // Add a message if no facilities are present
+        for (const Facility *facility : underConstruction)
+        {
+            result += "FacilityName: " + facility->toString() + "\n";
+            result += "FacilityStatus: UNDER_CONSTRUCTION\n"; // Corrected spelling
+        }
+    }
+    else
+    {
+        result += "No facilities available.\n"; // Add a message if no facilities are present
     }
 
     return result;
