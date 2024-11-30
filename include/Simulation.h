@@ -24,6 +24,7 @@ class Simulation {
         void step();
         void close();
         void open();
+        SelectionPolicy* ToSelectionPolicy(const string& str);
 
     private:
         bool isRunning;

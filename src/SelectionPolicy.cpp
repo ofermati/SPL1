@@ -3,6 +3,8 @@
 #include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <stdexcept>
+#include <iostream>
+
 
 using std::vector;
 
@@ -45,15 +47,15 @@ const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType>
     }
     int minIndex = 0;
     int minBalance = Balance(facilitiesOptions[0], LifeQualityScore, EconomyScore, EnvironmentScore);
-    for (size_t i = 1; i < facilitiesOptions.size(); i++)
-    {
+
+    for (size_t i = 1; i < facilitiesOptions.size(); i++){
         int currentBalance = Balance(facilitiesOptions[i], LifeQualityScore, EconomyScore, EnvironmentScore);
-        if (currentBalance < minBalance)
-        {
+        if (currentBalance < minBalance){
             minIndex = i;
             minBalance = currentBalance;
         }
     }
+    
     LifeQualityScore = LifeQualityScore + facilitiesOptions[minIndex].getLifeQualityScore();
     EconomyScore = EconomyScore + facilitiesOptions[minIndex].getEconomyScore();
     EnvironmentScore = EnvironmentScore + facilitiesOptions[minIndex].getEnvironmentScore();
@@ -67,8 +69,7 @@ int BalancedSelection::Balance(const FacilityType &type, int LifeQualityScore, i
     int diff1 = std::abs(Environment - Economy);
     int diff2 = std::abs(Economy - LifeQuality);
     int diff3 = std::abs(LifeQuality - Environment);
-    int maxDiff = std::max(diff1, diff2);
-    maxDiff = std::max(maxDiff, diff3);
+    int maxDiff = std::max({diff1, diff2, diff3});
     return maxDiff;
 }
 
@@ -87,20 +88,14 @@ BalancedSelection *BalancedSelection::clone() const{
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
 
 const FacilityType &EconomySelection::selectFacility(const vector<FacilityType> &facilitiesOptions){
-    bool value = false;
-    int i = (lastSelectedIndex + 1) % facilitiesOptions.size();
-    while (value == false)
-    {
-        if (facilitiesOptions[i].getCategory() == FacilityCategory::ECONOMY)
-        {
-            value = true;
+    int firsti= (lastSelectedIndex + 1) % facilitiesOptions.size();
+    for (size_t i = firsti ; i<=facilitiesOptions.size() ; i = (i + 1) % facilitiesOptions.size()){
+        if (facilitiesOptions[i].getCategory() == FacilityCategory::ECONOMY){
+            lastSelectedIndex=i;
             return facilitiesOptions[i];
         }
-        i = (i + 1) % facilitiesOptions.size();
-        if (i == lastSelectedIndex)
-            throw std::runtime_error("No facility with ECONOMY category found.");
     }
-    return facilitiesOptions[i]; //shuldnt get this far
+    throw std::runtime_error("No facility with ECONOMY category found.");
 }
 
 const string EconomySelection::toString() const
@@ -121,20 +116,14 @@ EconomySelection *EconomySelection::clone() const
 SustainabilitySelection::SustainabilitySelection(): lastSelectedIndex(-1) {}
 
 const FacilityType &SustainabilitySelection::selectFacility(const vector<FacilityType> &facilitiesOptions) {
-    bool value = false;
-    int i = (lastSelectedIndex + 1) % facilitiesOptions.size();
-    while (value == false)
-    {
-        if (facilitiesOptions[i].getCategory() == FacilityCategory::ENVIRONMENT)
-        {
-            value = true;
+    int firsti= (lastSelectedIndex + 1) % facilitiesOptions.size();
+    for (size_t i=firsti ; i<=facilitiesOptions.size() ; i = (i + 1) % facilitiesOptions.size()){
+        if (facilitiesOptions[i].getCategory() == FacilityCategory::ENVIRONMENT){
+            lastSelectedIndex=i;
             return facilitiesOptions[i];
         }
-        i = (i + 1) % facilitiesOptions.size();
-        if (i == lastSelectedIndex)
-            throw std::runtime_error("No facility with ENVIRONMENT category found.");
     }
-    return facilitiesOptions[i]; //shuldnt get this far
+    throw std::runtime_error("No facility with ENVIRONMENT category found.");
 }
 
 const string SustainabilitySelection::toString() const {
@@ -146,4 +135,3 @@ SustainabilitySelection *SustainabilitySelection::clone() const {
     // in this case, the * means look at the values at my address.
     return other;
 }
-
