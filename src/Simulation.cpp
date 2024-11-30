@@ -68,3 +68,28 @@ SelectionPolicy* Simulation::ToSelectionPolicy(const string& str) {
         throw std::runtime_error("Unknown selection policy: " + str);
     }
 }
+
+
+
+void Simulation::step(){
+    for(Plan plan : plans){
+        plan.step();
+    }
+}
+
+void Simulation::close(){
+    for(Plan plan : plans){
+        string output = "planID:"+ plan.getPlanId() + "\n";
+        output += plan.getSttlement() +"\n";
+        output += "LifeQuality_Score" + plan.getlifeQualityScore() + "\n";
+        output += "Economy_Score" + plan.getEconomyScore() + "\n";
+        output += "Environment_Score" + plan.getEnvironmentScore() + "\n";
+    }
+    isRunning = false ;
+    for (Settlement settlement : settlements){
+        delete settlement;
+    }
+    for(Plan plan : plans){
+        delete selectionPolicy;
+    }
+}

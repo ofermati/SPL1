@@ -103,6 +103,14 @@ void Plan::addFacility(Facility* facility) {
     }
 }
 
+const int Plan::getPlanId() const{
+    return plan_id;
+}
+
+const Settlement& Plan::getSttlement() const{
+    return settlement;
+}
+
 const string Plan::toString() const{
     string result = "PlanID: " + std::to_string(plan_id) + "\n";
     result += "SettlementName: " + settlement.getName() + "\n";
@@ -130,10 +138,10 @@ const string Plan::toString() const{
 }
 
 Plan::~Plan() {
-    for (auto facility : facilities) {
+    for (Facility* facility : facilities) {
         delete facility;
     }
-    for (auto facility : underConstruction) {
+    for (Facility* facility : underConstruction) {
         delete facility;
     }
 }
