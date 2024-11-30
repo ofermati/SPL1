@@ -111,6 +111,10 @@ const Settlement& Plan::getSttlement() const{
     return settlement;
 }
 
+const SelectionPolicy* Plan::getSelectionPolicy() const{
+    return selectionPolicy;
+}
+
 const string Plan::toString() const{
     string result = "PlanID: " + std::to_string(plan_id) + "\n";
     result += "SettlementName: " + settlement.getName() + "\n";
