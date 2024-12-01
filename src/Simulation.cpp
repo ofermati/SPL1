@@ -3,6 +3,9 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include "Auxiliary.cpp"
+#include "Action.cpp"
+
 using std::string;
 
 
@@ -77,6 +80,91 @@ SelectionPolicy* Simulation::ToSelectionPolicy(const string& str) {
         throw std::runtime_error("Unknown selection policy:"+str);}
 }
 
+void Simulation::start(){
+    open();
+    while(isRunning){
+        string line;
+        std::cin >> line;
+        vector<string> inputs = Auxiliary::parseArguments(line);
+
+        if(inputs[0] == "step"){
+            const int steps = std::stoi(inputs[1]);
+            BaseAction *step = new SimulateStep(steps);
+            step->act(*this);
+            actionsLog.push_back(step);
+        }
+
+        if(inputs[0] == "plan"){
+            const string settName = (inputs[1]);
+            const string secPol = (inputs[2]);
+            BaseAction *newPlan = new AddPlan(settName, secPol);
+            newPlan->act(*this);
+            actionsLog.push_back(newPlan);
+        }        
+
+        if(inputs[0] == "settlement"){
+            const string settName = (inputs[1]);
+            SettlementType settType = (static_cast<SettlementType>(std::stoi(inputs[2])));
+            BaseAction *newSett = new AddSettlement(settName, settType);            
+            newSett->act(*this);
+            actionsLog.push_back(newSett);
+        }
+
+        if(inputs[0] == "facility"){
+            const string facilityName = (inputs[1]);
+            const FacilityCategory facilityCategory = (static_cast<FacilityCategory>(std::stoi(inputs[2])));
+            const int price = std::stoi(inputs[3]);
+            const int lifeQualityScore = std::stoi(inputs[4]);
+            const int economyScore = std::stoi(inputs[5]);
+            const int environmentScore = std::stoi(inputs[6]);
+            BaseAction *newFaci = new AddFacility(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
+            newFaci->act(*this);
+            actionsLog.push_back(newFaci);
+        }
+
+        if(inputs[0] == "planStatus"){
+            int planId = std::stoi(inputs[1]);
+            BaseAction *printPlan = new PrintPlanStatus(planId);
+            printPlan->act(*this);
+            actionsLog.push_back(printPlan);
+        }
+
+        if(inputs[0] == "changePolicy"){
+            const int planID = std::stoi(inputs[1]);
+            const string newPol = (inputs[2]);
+            BaseAction *ChangePol = new ChangePlanPolicy(planID, newPol);
+            ChangePol->act(*this);
+            actionsLog.push_back(ChangePol);
+        }
+
+        if(inputs[0] == "log"){
+            BaseAction *printLog = new PrintActionsLog();
+            printLog->act(*this);
+            actionsLog.push_back(printLog);
+        }
+
+        if(inputs[0] == "close"){
+            BaseAction *close = new Close();
+            close->act(*this);
+            actionsLog.push_back(close);
+        }
+
+        if(inputs[0] == "backup"){
+            BaseAction *backUp = new BackupSimulation();
+            backUp->act(*this);
+            actionsLog.push_back(backUp);
+        }        
+
+        if(inputs[0] == "restore"){
+            BaseAction *restore = new RestoreSimulation();
+            restore->act(*this);
+            actionsLog.push_back(restore);
+        }
+
+        //האם סיימנ או שצריך להוסיף פה עוד משימות?
+    }
+}
+
 void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy){
     if(!isSettlementExists(settlement.getName())){
         throw std::runtime_error("Cannot create this plan.");//לפי מה שכתבו בעבודה
@@ -122,9 +210,9 @@ bool Simulation::addSettlement(Settlement *settlement){
     return false;   
  }
 
-Settlement &Simulation::getSettlement(const string &settlementName){//צריך להדאיג אותנו שהפנוקציה מחזירה ערך שהוא לא קונסט? פשוט זה לא מוגדר בפןנקציה
+Settlement *Simulation::getSettlement(const string &settlementName){
     for(Settlement* sett : settlements){
-        if(sett->getName() == settlementName){
+        if((*sett).getName() == settlementName){
             return *sett;
         }
     }
@@ -151,6 +239,10 @@ void Simulation::step(){
     for(Plan plan : plans){
         plan.step();
     }
+}
+
+void Simulation::open(){
+    isRunning=true;
 }
 
 void Simulation::close(){
