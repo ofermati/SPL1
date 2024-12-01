@@ -79,7 +79,7 @@ SelectionPolicy* Simulation::ToSelectionPolicy(const string& str) {
     } else if (str == "env") {
         return new SustainabilitySelection();
     } else {
-        throw std::runtime_error("Unknown selection policy:"+str);}
+        return nullptr;}
 }
 
 void Simulation::start(){
@@ -163,7 +163,7 @@ void Simulation::start(){
             actionsLog.push_back(restore);
         }
 
-        //האם סיימנ או שצריך להוסיף פה עוד משימות?
+        //מניחים שכל הפקודות חוקיות ולכן אין else
     }
 }
 
@@ -180,8 +180,8 @@ void Simulation::addAction(BaseAction *action){
 }
 
 bool Simulation::addSettlement(Settlement *settlement){
-    if(isSettlementExists(settlement->getName())){
-        throw std::runtime_error("Settlement already exists.");
+    if(!isSettlementExists(settlement->getName())){
+        return false;
     }
     settlements.emplace_back(new Settlement(settlement->getName(), settlement->getType()));
     return true;
@@ -212,13 +212,13 @@ bool Simulation::addSettlement(Settlement *settlement){
     return false;   
  }
 
-Settlement &Simulation::getSettlement(const string &settlementName){
+Settlement *Simulation::getSettlement(const string &settlementName){
     for(Settlement* sett : settlements){
         if((*sett).getName() == settlementName){
             return *sett;
         }
     }
-    throw std::runtime_error("Settlement not found");
+    return nullptr;);
 }
 
 Plan &Simulation::getPlan(const int planID){

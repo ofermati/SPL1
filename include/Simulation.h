@@ -20,7 +20,7 @@ class Simulation {
         bool addFacility(FacilityType facility);
         bool isSettlementExists(const string &settlementName);
         bool isFacilityExists(FacilityType facility);
-        Settlement &getSettlement(const string &settlementName);
+        Settlement *getSettlement(const string &settlementName);
         Plan &getPlan(const int planID);
         void step();
         void close();
