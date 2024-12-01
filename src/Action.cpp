@@ -16,11 +16,10 @@ void BaseAction::error(string errorMsg){
     this->errorMsg = errorMsg; 
     cout << "Error: " << errorMsg << endl; 
 }
+
 const string &BaseAction::getErrorMsg() const{
     return errorMsg;
     
-
-
 
 
 
