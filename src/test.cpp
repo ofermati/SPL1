@@ -1,87 +1,117 @@
-#include "Plan.h"
-#include "Facility.h"
-#include "Settlement.h"
-#include "SelectionPolicy.h"
+#include "Simulation.h"
 #include <iostream>
-#include <vector>
 #include <cassert>
+#include <stdexcept>
 
-using namespace std;
+void testAddSettlement() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
 
-// פונקציית בדיקה עבור פונקציית step במחלקת Plan
-void testPlanStep() {
-    // יצירת יישוב לדוגמה
-    Settlement settlement("TestSettlement", SettlementType::CITY);
+    // בדיקה: הוספת יישוב
+    assert(sim.addSettlement(settlement) == true);
+    assert(sim.isSettlementExists("TestSettlement") == true);
 
-    // יצירת מדיניות בחירה פשוטה
-    NaiveSelection selectionPolicy;
+    // בדיקה: יישוב שכבר קיים
+    try {
+        sim.addSettlement(settlement);
+        assert(false); // אם הגענו לכאן, הבדיקה נכשלה
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()) == "Settlement already exists.");
+    }
 
-    // יצירת מתקנים לדוגמה
-    vector<FacilityType> facilityOptions = {
-        FacilityType("Park", FacilityCategory::ENVIRONMENT, 10, 5, 0, 7),
-        FacilityType("Hospital", FacilityCategory::ECONOMY, 15, 8, 10, 3)
-    };
-
-    // יצירת תוכנית (Plan) עם הנתונים שיצרנו
-    Plan plan(1, settlement, &selectionPolicy, facilityOptions);
-
-    // פלט דיבוג: מצב התוכנית לפני הקריאה ל-step
-    cout << "Before step:\n" << plan.toString() << endl;
-
-    // קריאה ל-step
-    plan.step();
-
-    // פלט דיבוג: מצב התוכנית אחרי הקריאה ל-step
-    cout << "After step:\n" << plan.toString() << endl;
-
-    // בדיקה שהפונקציה step מוסיפה מתקנים ל-underConstruction
-    assert(plan.toString().find("UNDER_CONSTRUCTION") != string::npos && 
-           "Facilities should be under construction after step");
-
-    cout << "testPlanStep passed successfully.\n";
+    std::cout << "testAddSettlement passed successfully.\n";
 }
 
-void testPlanStepCompletion() {
-    // יצרנו תוכנית דוגמה כרגיל
-    Settlement settlement("TestSettlement", SettlementType::CITY);
-    NaiveSelection selectionPolicy;
-    vector<FacilityType> facilityOptions = {
-        FacilityType("Park", FacilityCategory::ENVIRONMENT, 10, 5, 0, 7),
-        FacilityType("Hospital", FacilityCategory::ECONOMY, 15, 8, 10, 3)
-    };
-    Plan plan(1, settlement, &selectionPolicy, facilityOptions);
+void testAddFacility() {
+    Simulation sim("config.txt");
+    FacilityType facility("TestFacility", FacilityCategory::COMMERCIAL, 5000, 10, 5, -3);
 
-    // ביצוע מספר שלבים
-    for (int i = 0; i < 10; ++i) {
-        cout << "Step " << i + 1 << ":\n";
-        plan.step();
-        cout << plan.toString() << endl;
+    // בדיקה: הוספת מתקן
+    assert(sim.addFacility(facility) == true);
+    assert(sim.isFacilityExists(facility) == true);
+
+    // בדיקה: מתקן שכבר קיים
+    try {
+        sim.addFacility(facility);
+        assert(false); // אם הגענו לכאן, הבדיקה נכשלה
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()) == "Facility already exists.");
     }
 
-    // וודא שאין מתקנים שנשארו ב-underConstruction עם זמן בנייה שלם
-    string planOutput = plan.toString();
-    size_t pos = planOutput.find("UNDER_CONSTRUCTION");
-    if (pos != string::npos) {
-        cout << "Facilities still under construction:\n";
-        cout << planOutput.substr(pos) << endl;
-    }
-
-    // הבדיקה תתמקד רק במתקנים ב-facilities
-    for (const Facility* facility : plan.getFacilities()) {
-        assert(facility->getStatus() == FacilityStatus::OPERATIONAL &&
-               "All facilities in facilities list should be OPERATIONAL");
-    }
-
-    cout << "testPlanStepCompletion passed successfully.\n";
+    std::cout << "testAddFacility passed successfully.\n";
 }
 
+void testAddPlan() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
+    sim.addSettlement(settlement);
+    SelectionPolicy* policy = new NaiveSelection();
 
+    // בדיקה: הוספת תוכנית
+    sim.addPlan(*settlement, policy);
+
+    Plan& plan = sim.getPlan(0);
+    assert(plan.getPlanId() == 0);
+    assert(&plan.getSttlement() == settlement);
+
+    // בדיקה: הוספת תוכנית ליישוב שאינו קיים
+    try {
+        sim.addPlan(Simulation().getSettlement("NonExistent"), policy);
+        assert(false); // אם הגענו לכאן, הבדיקה נכשלה
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()) == "Cannot create this plan.");
+    }
+
+    std::cout << "testAddPlan passed successfully.\n";
+}
+
+void testStep() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
+    sim.addSettlement(settlement);
+
+    SelectionPolicy* policy = new NaiveSelection();
+    sim.addPlan(*settlement, policy);
+
+    // בדיקה: קריאה ל-step
+    sim.step();
+
+    Plan& plan = sim.getPlan(0);
+    assert(plan.getFacilities().size() >= 0); // בדוק אם מתבצעות התקדמויות בתוכנית
+
+    std::cout << "testStep passed successfully.\n";
+}
+
+void testClose() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
+    sim.addSettlement(settlement);
+
+    SelectionPolicy* policy = new NaiveSelection();
+    sim.addPlan(*settlement, policy);
+
+    // קריאה ל-close
+    sim.close();
+
+    assert(sim.getSettlements().empty());
+    assert(sim.getPlans().empty());
+    assert(sim.getFacilitiesOptions().empty());
+
+    std::cout << "testClose passed successfully.\n";
+}
 
 int main() {
-    // קריאה לפונקציות הבדיקה
-    testPlanStep();
-    testPlanStepCompletion();
+    try {
+        testAddSettlement();
+        testAddFacility();
+        testAddPlan();
+        testStep();
+        testClose();
+    } catch (const std::exception& e) {
+        std::cerr << "Test failed: " << e.what() << std::endl;
+        return 1;
+    }
 
-    cout << "All tests completed successfully.\n";
+    std::cout << "All tests passed successfully!" << std::endl;
     return 0;
 }

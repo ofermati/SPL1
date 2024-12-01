@@ -23,9 +23,12 @@ Simulation::Simulation(const string &configFilePath)
         ss >> type; //שומר את המילה המחולצת כל פעם במשתנה TYPE
 
         if(type == "settlement"){
+            if (line.size() != 3){
+                throw std::runtime_error("Elegal settlement in config file.");
+            }
             std::string name;
             int settlementType;
-            ss >> name >> SettlementType;
+            ss >> name >> settlementType;
             Settlement *settlement = new Settlement(name, static_cast<SettlementType>(settlementType)); //יוצרים ומוסיפים את היישוב לרשימת היישובים מבצעים קאסטינג כדי להפוך מint לenum
             // המרה סטטית היא כזו שקוראת בזמן כתיבת הקימפול לפני שהתכנית ממש רצה
             addSettlement(settlement);
@@ -33,6 +36,9 @@ Simulation::Simulation(const string &configFilePath)
             //       delete settlement; //(אולי לא חייב) במקרה של כישלון, מוודאים שלא נשאר זיכרון יתום
             //     }
         } else if (type == "facility") {
+            if (line.size() != 7){
+                throw std::runtime_error("Elegal facility in config file.");
+            }           
             std::string name;
             int category, price, lifeqImpact, ecoImpact, envImpact;
             ss >> name >> category >> price >> lifeqImpact >> ecoImpact >> envImpact;
@@ -41,6 +47,9 @@ Simulation::Simulation(const string &configFilePath)
             addFacility(facility);
 
         } else if (type == "plan") {
+            if (line.size() != 3){
+                throw std::runtime_error("Elegal plan in config file.");
+            }
             std::string settlementName, selectionPolicy;
             ss >> settlementName >> selectionPolicy;
             //הופך את מה שהתקבל לטיפוס הראוי
@@ -65,11 +74,78 @@ SelectionPolicy* Simulation::ToSelectionPolicy(const string& str) {
     } else if (str == "env") {
         return new SustainabilitySelection();
     } else {
-        throw std::runtime_error("Unknown selection policy: " + str);
-    }
+        throw std::runtime_error("Unknown selection policy:"+str);}
 }
 
+void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy){
+    if(!isSettlementExists(settlement.getName())){
+        throw std::runtime_error("Cannot create this plan.");//לפי מה שכתבו בעבודה
+    }
+    plans.emplace_back(Plan(planCounter, settlement, selectionPolicy, facilitiesOptions));//בגלל שיוצרים חדש עשיתי EMPLACE
+    planCounter++;
+}
 
+void Simulation::addAction(BaseAction *action){
+    actionsLog.push_back(action);
+}
+
+bool Simulation::addSettlement(Settlement *settlement){
+    if(isSettlementExists(settlement->getName())){
+        throw std::runtime_error("Settlement already exists.");
+    }
+    settlements.emplace_back(new Settlement(settlement->getName(), settlement->getType()));
+    return true;
+}
+
+ bool Simulation::addFacility(FacilityType facility){
+    if(isFacilityExists(facility)){
+        throw std::runtime_error("Facility already exists.");
+    }
+    facilitiesOptions.push_back(facility);
+ }
+
+ bool Simulation::isSettlementExists(const string &settlementName){
+    for(const Settlement* sett : settlements){
+        if(sett->getName() == settlementName){
+            return true;
+        }
+    }
+    return false;
+ }
+
+ bool Simulation::isFacilityExists(FacilityType facility){
+    for(FacilityType faci : facilitiesOptions){
+        if(faci.getName() == facility.getName()){
+            return true;
+        }
+    }
+    return false;   
+ }
+
+Settlement &Simulation::getSettlement(const string &settlementName){//צריך להדאיג אותנו שהפנוקציה מחזירה ערך שהוא לא קונסט? פשוט זה לא מוגדר בפןנקציה
+    for(Settlement* sett : settlements){
+        if(sett->getName() == settlementName){
+            return *sett;
+        }
+    }
+    throw std::runtime_error("Settlement not found");
+}
+
+Plan &Simulation::getPlan(const int planID){
+    for (Plan curr : plans){
+        if(curr.getPlanId() == planID){
+            return curr;
+        }
+    }
+    throw std::runtime_error("Plan not found");
+}
+
+void Simulation::start(){
+}
+
+void Simulation::open(){
+    isRunning = true ;
+}
 
 void Simulation::step(){
     for(Plan plan : plans){
@@ -78,18 +154,26 @@ void Simulation::step(){
 }
 
 void Simulation::close(){
-    for(Plan plan : plans){
-        string output = "planID:"+ plan.getPlanId() + "\n";
-        output += plan.getSttlement() +"\n";
-        output += "LifeQuality_Score" + plan.getlifeQualityScore() + "\n";
-        output += "Economy_Score" + plan.getEconomyScore() + "\n";
-        output += "Environment_Score" + plan.getEnvironmentScore() + "\n";
-    }
+    for (Plan plan : plans) {
+        string output = "planID: " + std::to_string(plan.getPlanId()) + "\n";
+        output += "Settlement: " + (plan.getSttlement().toString()) + "\n";
+        output += "LifeQuality_Score: " + std::to_string(plan.getlifeQualityScore()) + "\n";
+        output += "Economy_Score: " + std::to_string(plan.getEconomyScore()) + "\n";
+        output += "Environment_Score: " + std::to_string(plan.getEnvironmentScore()) + "\n";
+
     isRunning = false ;
-    for (Settlement settlement : settlements){
+    
+    for (Settlement *settlement : settlements){
         delete settlement;
     }
-    for(Plan plan : plans){
-        delete selectionPolicy;
+    settlements.clear();
+    
+    for (Plan plan : plans){
+        delete plan.getSelectionPolicy();
     }
+    plans.clear();
+    
+    facilitiesOptions.clear();
+
+    //Actionlog need to delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
