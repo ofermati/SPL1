@@ -69,3 +69,52 @@ AddSettlement *clone() const{
 const string toString() const{
     return "The settlement name is" + settlementName + " and the type is" + Settlement::STtostring(settlementType);
 }
+
+
+
+
+/*
+class BackupSimulation : public BaseAction {
+    public:
+        BackupSimulation();
+        void act(Simulation &simulation) override;
+        BackupSimulation *clone() const override;
+        const string toString() const override;
+    private:
+};
+*/
+
+BaseAction::BackupSimulation(){
+
+}
+
+/*
+class ChangePlanPolicy : public BaseAction {
+    public:
+        X ChangePlanPolicy(const int planId, const string &newPolicy);
+        void act(Simulation &simulation) override;
+        ChangePlanPolicy *clone() const override;
+        const string toString() const override;
+    private:
+        const int planId;
+        const string newPolicy;
+};
+
+*/
+
+BaseAction::ChangePlanPolicy(const int planId, const string &newPolicy):planId(planId), newPolicy(newPolicy){}
+
+void act(Simulation &simulation){
+    if(Simulation::getPlan(planId)==nullptr){
+        error("Plan" + std::toString(planID) + "not found!");
+    }
+    Plan &plan = simulation.getPlan(planId);
+    if(plan == nullptr || newPolicy==plan.getSelectionPolicy()->getName()){
+        error("Cannot change selection policy");
+    }
+    string prev = plan.getSelectionPolicy()->getName();
+    delete plan.getSelectionPolicy();//לוודא שזה באמת מוחק ושלא צריך להעביר את זה למחלקה סימוליישן ששם יצרנו את הסלקשן פוליסי
+    plan.setSelectionPolicy(Simulation::ToSelectionPolicy(newPolicy, plan.GetwithUnderQUA(), plan.GetwithUnderScoreECO(), plan.GetwithUnderENVI()));
+    string output = std::to_string(plan.getPlanId()) +'/n' + "previous Policy:" + prev +'/n' + "new Policy:" + plan.getSelectionPolicy()->getName();
+    std::cout << output << std::endl
+}

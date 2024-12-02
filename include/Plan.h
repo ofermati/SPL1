@@ -18,6 +18,9 @@ class Plan {
         const int getlifeQualityScore() const;
         const int getEconomyScore() const;
         const int getEnvironmentScore() const;
+        const int GetwithUnderQUA() const;
+        const int GetwithUnderScoreECO() const;
+        const int GetwithUnderENVI() const;
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);
         void step();
         void printStatus();
@@ -38,4 +41,5 @@ class Plan {
         vector<Facility*> underConstruction;
         const vector<FacilityType> &facilityOptions;
         int life_quality_score, economy_score, environment_score;
+        int withUnderQUA, withUnderScoreECO, withUnderENVI;
 };

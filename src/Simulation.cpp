@@ -59,7 +59,7 @@ Simulation::Simulation(const string &configFilePath)
             ss >> settlementName >> selectionPolicy;
             //הופך את מה שהתקבל לטיפוס הראוי
             Settlement& settlement = getSettlement(settlementName);
-            SelectionPolicy* policy = ToSelectionPolicy(selectionPolicy);
+            SelectionPolicy* policy = ToSelectionPolicy(selectionPolicy, 0, 0, 0);
             addPlan(settlement, policy);
         }else {
             std::cerr << "Unknown entry type in config file: " << type << std::endl;
@@ -69,11 +69,11 @@ Simulation::Simulation(const string &configFilePath)
     }
 
 //turning string into selectionPolicy
-SelectionPolicy* Simulation::ToSelectionPolicy(const string& str) {
+SelectionPolicy* Simulation::ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore) {
     if (str == "nve") {
         return new NaiveSelection();
     } else if (str == "bal") {
-        return new BalancedSelection();
+        return new BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore);
     } else if (str == "eco") {
         return new EconomySelection();
     } else if (str == "env") {
@@ -227,7 +227,7 @@ Plan &Simulation::getPlan(const int planID){
             return curr;
         }
     }
-    throw std::runtime_error("Plan not found");
+    return nullptr;
 }
 
 void Simulation::step(){
@@ -259,7 +259,6 @@ void Simulation::close(){
         delete plan.getSelectionPolicy();
     }
     plans.clear();
-    
     facilitiesOptions.clear();
 
     //Actionlog need to delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
