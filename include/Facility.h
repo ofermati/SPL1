@@ -50,7 +50,7 @@ class Facility: public FacilityType {
         void setStatus(FacilityStatus status);
         const FacilityStatus& getStatus() const;
         const string toString() const;
-         string categoryToString (FacilityCategory type) const;
+        string categoryToString (FacilityCategory type) const;
 
     private:
         const string settlementName;

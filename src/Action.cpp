@@ -1,7 +1,7 @@
 #include "Action.h"
 #include <string>
 #include <vector>
-#include "Simulation.cpp"
+#include "Simulation.h"
 #include "Settlement.h"
 #include <iostream>
 enum class SettlementType;
@@ -44,7 +44,7 @@ void AddPlan::act(Simulation &simulation){
     Settlement *sett = Simulation::getSettlement(settlementName);
     SelectionPolicy *selectionPolicy= Simulation::ToSelectionPolicy(selectionPolicy);
     if(sett == nullptr | selectionPolicy == nullptr){
-       error(errorMsg);
+       error(getErrorMsg());
     }
     simulation.addPlan(sett, selectionPolicy);
     complete();  //הייתי צריכה לכלול את סימוליישנ בשביל שזה יעבוד אז מקווה שזה לא יעשה בעיות עם פרגמה וואנ ס וכאלה
@@ -64,8 +64,8 @@ AddSettlement::AddSettlement(const string &settlementName,SettlementType settlem
 
 void act(Simulation &simulation){
     Settlement *addMe = new Settlement(settlementName, settlementType);
-    if(sett == nullptr){
-        error(errorMsg);  
+    if(addMe == nullptr){
+        error(getErrorMsg());  
     }
     simulation.addSettlement(addMe);
 }
@@ -109,12 +109,11 @@ const string toString() const {
  PrintPlanStatus(int planId): planId(planId){}
 
 void act(Simulation &simulation) {
-    for (Plan plan : plans){
-        if (plan.getId() == planId){
-            plan.printStatus();
-        }
-    }
+    simulation.getPlan(planId);
+        if (plan.getId() == nullptr){
         error(errorMsg);
+        }
+    plan.printStatus();
 }
 
 PrintPlanStatus *clone() const {
@@ -128,19 +127,21 @@ const string toString() const {
 
 //---------------------------ChangePlanPolicy---------------------------
 
-ChangePlanPolicy::ChangePlanPolicy(const int planId, const string &newPolicy):
-planId(planId), newPolicy(newPolicy) {}
-        
+ChangePlanPolicy::ChangePlanPolicy(const int planId, const string &newPolicy) : planId(planId), newPolicy(newPolicy){}
+
 void act(Simulation &simulation){
-    if(newPolicy == nullptr){
-        error(errorMsg);
+    if(Simulation::getPlan(planId)==nullptr){
+        error("Plan" + std::toString(planID) + "not found!");
     }
-   for (Plan plan : plans){
-        if (plan.getId() == planId){
-            plan.setSelectionPolicy(newPolicy);
-        }
+    Plan &plan = simulation.getPlan(planId);
+    if(plan == nullptr || newPolicy==plan.getSelectionPolicy()->getName()){
+        error("Cannot change selection policy");
     }
-        error(errorMsg);
+    string prev = plan.getSelectionPolicy()->getName();
+    delete plan.getSelectionPolicy();//לוודא שזה באמת מוחק ושלא צריך להעביר את זה למחלקה סימוליישן ששם יצרנו את הסלקשן פוליסי
+    plan.setSelectionPolicy(Simulation::ToSelectionPolicy(newPolicy, plan.GetwithUnderQUA(), plan.GetwithUnderScoreECO(), plan.GetwithUnderENVI()));
+    string output = std::to_string(plan.getPlanId()) +'/n' + "previous Policy:" + prev +'/n' + "new Policy:" + plan.getSelectionPolicy()->getName();
+    std::cout << output << std::endl;
 }
 
 ChangePlanPolicy *clone() const{
@@ -148,10 +149,8 @@ ChangePlanPolicy *clone() const{
 }
        
 const string toString() const{
-    return "the plan number is" + std::to_string(planId) + "and the new policy is" + newPolicy;
+    return "the plan number is" + std::to_string(planId) + "and the new policy is" + newPolicy;
 }
-
-
 
 //---------------------------PrintActionsLog---------------------------
 
