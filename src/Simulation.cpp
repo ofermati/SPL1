@@ -9,8 +9,6 @@
 using std::string;
 
 
-
-
 Simulation::Simulation(const string &configFilePath)
     :isRunning(true), planCounter(0){
 
@@ -228,6 +226,13 @@ Plan &Simulation::getPlan(const int planID){
         }
     }
     return nullptr;
+}
+
+void Simulation::start(){
+}
+
+void Simulation::open(){
+    isRunning = true ;
 }
 
 void Simulation::step(){

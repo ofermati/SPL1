@@ -79,3 +79,12 @@ const FacilityStatus& Facility::getStatus() const{
 const string Facility::toString() const{
     return "this is" + name + "in" + settlementName + "with" +  std::to_string(timeLeft) + "time left.";
 }
+
+string Facility::categoryToString (FacilityCategory type) const {
+     switch (type) {
+        case FacilityCategory::ECONOMY : return "Economy";
+        case FacilityCategory::ENVIRONMENT : return "Enviroment";
+        case FacilityCategory::LIFE_QUALITY : return "Life quality";
+    }
+    return "Unknown";
+}

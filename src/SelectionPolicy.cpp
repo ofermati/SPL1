@@ -38,7 +38,6 @@ const string NaiveSelection::getName(){
     return "nve";
 }
 
-
 /*************************************** BalancedSelection *****************************************/
 
 BalancedSelection::BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore)

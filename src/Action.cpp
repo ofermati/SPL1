@@ -1,7 +1,7 @@
 #include "Action.h"
 #include <string>
 #include <vector>
-#include "Simulation.cpp"
+#include "Simulation.h"
 #include "Settlement.h"
 #include <iostream>
 enum class SettlementType;
@@ -36,13 +36,16 @@ SimulateStep *SimulateStep::clone() const{//לא הבנתי למה צריך קל
     return new SimulateStep(*this);
 }
 
-//---------------------------AddPlan---------------------------//משהו שצריך לחשוב עליו: אם זורקים הערה אי אפשר לשנות את הסטטוס לארור
+//---------------------------AddPlan---------------------------//
 AddPlan::AddPlan(const string &settlementName, const string &selectionPolicy):
 settlementName(settlementName), selectionPolicy(selectionPolicy){}
 
 void AddPlan::act(Simulation &simulation){
-    Settlement *sett = Simulation::getSettlement(settlementName);//אם לק קיים יישוב כזה זה יזרוק הערה בגט סטלמנט
-    SelectionPolicy *selectionPolicy= Simulation::ToSelectionPolicy(selectionPolicy);//אם לא קיימת סלקשן פולייס כזאת יזרוק הערה בפונקציה של עופר
+    Settlement *sett = Simulation::getSettlement(settlementName);
+    SelectionPolicy *selectionPolicy= Simulation::ToSelectionPolicy(selectionPolicy);
+    if(sett == nullptr | selectionPolicy == nullptr){
+       error(errorMsg);
+    }
     simulation.addPlan(sett, selectionPolicy);
     complete();  //הייתי צריכה לכלול את סימוליישנ בשביל שזה יעבוד אז מקווה שזה לא יעשה בעיות עם פרגמה וואנ ס וכאלה
 }
@@ -51,7 +54,7 @@ const string AddPlan::toString() const{
     return "AddPlan: The settlement is" + settlementName + " and the selection policy is" + selectionPolicy;
 }
 AddPlan *AddPlan::clone() const{
-
+    return new AddPlan(*this);
 }
 
 
@@ -61,47 +64,68 @@ AddSettlement::AddSettlement(const string &settlementName,SettlementType settlem
 
 void act(Simulation &simulation){
     Settlement *addMe = new Settlement(settlementName, settlementType);
+    if(sett == nullptr){
+        error(errorMsg);  
+    }
     simulation.addSettlement(addMe);
 }
 AddSettlement *clone() const{
-
+      return new AddSettlement(*this);
 }
 const string toString() const{
     return "The settlement name is" + settlementName + " and the type is" + Settlement::STtostring(settlementType);
 }
 
 
+//---------------------------AddFacility---------------------------
 
-
-/*
-class BackupSimulation : public BaseAction {
-    public:
-        BackupSimulation();
-        void act(Simulation &simulation) override;
-        BackupSimulation *clone() const override;
-        const string toString() const override;
-    private:
-};
-*/
-
-BaseAction::BackupSimulation(){
-
+ AddFacility::AddFacility(const string &facilityName, const FacilityCategory facilityCategory, const int price, const int lifeQualityScore, const int economyScore, const int environmentScore):
+ facilityName(facilityName), facilityCategory(facilityCategory), price(price),
+ lifeQualityScore(lifeQualityScore), economyScore(economyScore), environmentScore(environmentScore)
+ {}
+       
+             
+void act(Simulation &simulation) {
+    Facility *addMe = new Facility(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
+    if (addMe == nullptr){
+       error(errorMsg); 
+    }
+    simulation.addFacility(*this);
 }
 
-/*
-class ChangePlanPolicy : public BaseAction {
-    public:
-        X ChangePlanPolicy(const int planId, const string &newPolicy);
-        void act(Simulation &simulation) override;
-        ChangePlanPolicy *clone() const override;
-        const string toString() const override;
-    private:
-        const int planId;
-        const string newPolicy;
-};
+AddFacility *clone() const {
+    return new AddFacility(*this);
+}
 
-*/
+const string toString() const {
+    string output = "The facility name is" + facilityName + " it category is" + Facility::categoryToString(facilityCategory) + " the price is" + std::to_string(price) + '\n';
+    output += "life quality score" + std::to_string(lifeQualityScore) + '\n';
+    output += "life economy score" + std::to_string(economyScore) + '\n';
+    output += "life enviromnet score" + std::to_string(environmentScore) + '\n';
+}
 
+
+//---------------------------PrintPlanStatus---------------------------
+ PrintPlanStatus(int planId): planId(planId){}
+
+void act(Simulation &simulation) {
+    for (Plan plan : plans){
+        if (plan.getId() == planId){
+            plan.printStatus();
+        }
+    }
+        error(errorMsg);
+}
+
+PrintPlanStatus *clone() const {
+    return new PrintPlanStatus(*this);
+}
+
+const string toString() const {
+    return "this is plan number" + std::to_string(planId); //אולי ממש להוסיף את הסטטוס של הפלאן וכו
+}
+
+//---------------------------ChangePlanPolicy---------------------------
 BaseAction::ChangePlanPolicy(const int planId, const string &newPolicy):planId(planId), newPolicy(newPolicy){}
 
 void act(Simulation &simulation){
@@ -116,5 +140,28 @@ void act(Simulation &simulation){
     delete plan.getSelectionPolicy();//לוודא שזה באמת מוחק ושלא צריך להעביר את זה למחלקה סימוליישן ששם יצרנו את הסלקשן פוליסי
     plan.setSelectionPolicy(Simulation::ToSelectionPolicy(newPolicy, plan.GetwithUnderQUA(), plan.GetwithUnderScoreECO(), plan.GetwithUnderENVI()));
     string output = std::to_string(plan.getPlanId()) +'/n' + "previous Policy:" + prev +'/n' + "new Policy:" + plan.getSelectionPolicy()->getName();
-    std::cout << output << std::endl
+    std::cout << output << std::endl;
+}
+
+ChangePlanPolicy *clone() const{
+    return new ChangePlanPolicy(*this);
+}
+       
+const string toString() const{
+    return "the plan number is" + std::to_string(planId) + "and the new policy is" + newPolicy;
+}
+//---------------------------PrintActionsLog---------------------------
+
+PrintActionsLog(); ///לא יודעת איך 
+
+void act(Simulation &simulation){
+
+}
+
+PrintActionsLog *clone() const{
+     return new PrintActionsLog(*this);
+}
+
+const string toString() const{
+
 }

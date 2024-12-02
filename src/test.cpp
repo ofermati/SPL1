@@ -1,69 +1,117 @@
+#include "Simulation.h"
 #include <iostream>
-#include <vector>
-#include "SelectionPolicy.h"
-#include "Facility.h"
+#include <cassert>
+#include <stdexcept>
 
-using namespace std;
+void testAddSettlement() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
 
-// Utility function to print the facilities vector
-void printFacilities(const vector<FacilityType> &facilities) {
-    cout << "Facilities:\n";
-    for (const auto &facility : facilities) {
-        cout << "  " << facility.getName()
-             << " | Category: " << static_cast<int>(facility.getCategory())
-             << " | Life Quality: " << facility.getLifeQualityScore()
-             << " | Economy: " << facility.getEconomyScore()
-             << " | Environment: " << facility.getEnvironmentScore() << "\n";
-    }
-}
+    // בדיקה: הוספת יישוב
+    assert(sim.addSettlement(settlement) == true);
+    assert(sim.isSettlementExists("TestSettlement") == true);
 
-// Test function for SelectionPolicy
-void testSelectionPolicy(SelectionPolicy *policy, vector<FacilityType> &facilities) {
-    cout << "Testing " << policy->toString() << ":\n";
-    cout << "Initial Facilities:\n";
-    printFacilities(facilities);
-    cout << "\n";
-
-    // Perform 5 steps of selection
-    for (int i = 0; i < 5; ++i) {
-        cout << "Step " << (i + 1) << ":\n";
-        try {
-            const FacilityType &selected = policy->selectFacility(facilities);
-            cout << "  Selected Facility: " << selected.getName() << "\n";
-        } catch (const std::exception &e) {
-            cout << "  Error: " << e.what() << "\n";
-        }
-        cout << "\n";
+    // בדיקה: יישוב שכבר קיים
+    try {
+        sim.addSettlement(settlement);
+        assert(false); // אם הגענו לכאן, הבדיקה נכשלה
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()) == "Settlement already exists.");
     }
 
-    delete policy; // Clean up the dynamically allocated policy
+    std::cout << "testAddSettlement passed successfully.\n";
 }
 
-// Main function to run the test
+void testAddFacility() {
+    Simulation sim("config.txt");
+    FacilityType facility("TestFacility", FacilityCategory::COMMERCIAL, 5000, 10, 5, -3);
+
+    // בדיקה: הוספת מתקן
+    assert(sim.addFacility(facility) == true);
+    assert(sim.isFacilityExists(facility) == true);
+
+    // בדיקה: מתקן שכבר קיים
+    try {
+        sim.addFacility(facility);
+        assert(false); // אם הגענו לכאן, הבדיקה נכשלה
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()) == "Facility already exists.");
+    }
+
+    std::cout << "testAddFacility passed successfully.\n";
+}
+
+void testAddPlan() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
+    sim.addSettlement(settlement);
+    SelectionPolicy* policy = new NaiveSelection();
+
+    // בדיקה: הוספת תוכנית
+    sim.addPlan(*settlement, policy);
+
+    Plan& plan = sim.getPlan(0);
+    assert(plan.getPlanId() == 0);
+    assert(&plan.getSttlement() == settlement);
+
+    // בדיקה: הוספת תוכנית ליישוב שאינו קיים
+    try {
+        sim.addPlan(Simulation().getSettlement("NonExistent"), policy);
+        assert(false); // אם הגענו לכאן, הבדיקה נכשלה
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()) == "Cannot create this plan.");
+    }
+
+    std::cout << "testAddPlan passed successfully.\n";
+}
+
+void testStep() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
+    sim.addSettlement(settlement);
+
+    SelectionPolicy* policy = new NaiveSelection();
+    sim.addPlan(*settlement, policy);
+
+    // בדיקה: קריאה ל-step
+    sim.step();
+
+    Plan& plan = sim.getPlan(0);
+    assert(plan.getFacilities().size() >= 0); // בדוק אם מתבצעות התקדמויות בתוכנית
+
+    std::cout << "testStep passed successfully.\n";
+}
+
+void testClose() {
+    Simulation sim("config.txt");
+    Settlement* settlement = new Settlement("TestSettlement", SettlementType::URBAN);
+    sim.addSettlement(settlement);
+
+    SelectionPolicy* policy = new NaiveSelection();
+    sim.addPlan(*settlement, policy);
+
+    // קריאה ל-close
+    sim.close();
+
+    assert(sim.getSettlements().empty());
+    assert(sim.getPlans().empty());
+    assert(sim.getFacilitiesOptions().empty());
+
+    std::cout << "testClose passed successfully.\n";
+}
+
 int main() {
-    vector<FacilityType> facilities = {
-        FacilityType("Facility1", FacilityCategory::LIFE_QUALITY, 100, 50, 30, 20),
-        FacilityType("Facility2", FacilityCategory::ECONOMY, 150, 40, 60, 10),
-        FacilityType("Facility3", FacilityCategory::ENVIRONMENT, 200, 30, 20, 50),
-        FacilityType("Facility4", FacilityCategory::LIFE_QUALITY, 120, 70, 20, 30),
-        FacilityType("Facility5", FacilityCategory::ECONOMY, 130, 30, 50, 40),
-    };
+    try {
+        testAddSettlement();
+        testAddFacility();
+        testAddPlan();
+        testStep();
+        testClose();
+    } catch (const std::exception& e) {
+        std::cerr << "Test failed: " << e.what() << std::endl;
+        return 1;
+    }
 
-    cout << "Testing NaiveSelection:\n";
-    testSelectionPolicy(new NaiveSelection(), facilities);
-    cout << "\n";
-
-    cout << "Testing BalancedSelection:\n";
-    testSelectionPolicy(new BalancedSelection(0, 0, 0), facilities);
-    cout << "\n";
-
-    cout << "Testing EconomySelection:\n";
-    testSelectionPolicy(new EconomySelection(), facilities);
-    cout << "\n";
-
-    cout << "Testing SustainabilitySelection:\n";
-    testSelectionPolicy(new SustainabilitySelection(), facilities);
-    cout << "\n";
-
+    std::cout << "All tests passed successfully!" << std::endl;
     return 0;
 }

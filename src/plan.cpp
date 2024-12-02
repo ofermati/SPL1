@@ -153,5 +153,5 @@ Plan::~Plan() {
     }
     for (Facility* facility : underConstruction) {
         delete facility;
-        }
+    }
 }
