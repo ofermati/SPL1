@@ -34,6 +34,9 @@ NaiveSelection *NaiveSelection::clone() const
     return other;
 }
 
+const string NaiveSelection::getName(){
+    return "nve";
+}
 
 /*************************************** BalancedSelection *****************************************/
 
@@ -83,6 +86,10 @@ BalancedSelection *BalancedSelection::clone() const{
     return other;
 }
 
+const string BalancedSelection::getName(){
+    return "bal";
+}
+
 /*************************************** EconomySelection *****************************************/
 
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
@@ -110,7 +117,9 @@ EconomySelection *EconomySelection::clone() const
     return other;
 }
 
-
+const string EconomySelection::getName(){
+    return "eco";
+}
 /*************************************** SustainabilitySelection *****************************************/
 
 SustainabilitySelection::SustainabilitySelection(): lastSelectedIndex(-1) {}
@@ -135,3 +144,8 @@ SustainabilitySelection *SustainabilitySelection::clone() const {
     // in this case, the * means look at the values at my address.
     return other;
 }
+
+const string SustainabilitySelection::getName(){
+    return "env";
+}
+

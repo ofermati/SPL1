@@ -12,7 +12,7 @@ Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *sele
     plan_id(planId) , settlement(settlement) , selectionPolicy(selectionPolicy) 
     ,status(PlanStatus::AVALIABLE), facilityOptions(facilityOptions) ,
     facilities(), underConstruction(), 
-    life_quality_score(0) , economy_score(0) , environment_score(0)
+    life_quality_score(0) , economy_score(0) , environment_score(0), withUnderQUA(0), withUnderScoreECO(0), withUnderENVI(0)
     {}
 
 Plan::Plan():
@@ -60,6 +60,9 @@ void Plan::step() {
         while (underConstruction.size() < maxFacilities && !facilityOptions.empty()) {
             Facility *newFac = new Facility(selectionPolicy->selectFacility(facilityOptions), settlement.getName());
             addFacility(newFac);
+            withUnderENVI = withUnderENVI + newFac->getEnvironmentScore();
+            withUnderQUA = withUnderQUA + newFac->getLifeQualityScore();
+            withUnderScoreECO = withUnderScoreECO + newFac->getEconomyScore();
         }
     }
     for (int i = underConstruction.size() - 1; i >= 0; i--) {
@@ -67,6 +70,9 @@ void Plan::step() {
             Facility* completedFacility = underConstruction[i];
             underConstruction.erase(underConstruction.begin() + i);//לוודא שלא יהיה בטעות ב2 הרשימות ויצור מחיקה כפולה שלו בסוף
             addFacility(completedFacility);
+            life_quality_score = life_quality_score + completedFacility->getLifeQualityScore();
+            economy_score = economy_score + completedFacility->getEconomyScore();
+            environment_score = environment_score + completedFacility->getEnvironmentScore();
         }
     }
     if (underConstruction.size() == static_cast<int>(settlement.getType()) + 1) {

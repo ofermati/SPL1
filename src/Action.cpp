@@ -124,11 +124,14 @@ const string toString() const {
     return "this is plan number" + std::to_string(planId); //אולי ממש להוסיף את הסטטוס של הפלאן וכו
 }
 
-
 //---------------------------ChangePlanPolicy---------------------------
+BaseAction::ChangePlanPolicy(const int planId, const string &newPolicy):planId(planId), newPolicy(newPolicy){}
 
+<<<<<<< HEAD
 ChangePlanPolicy::ChangePlanPolicy(const int planId, const string &newPolicy) : planId(planId), newPolicy(newPolicy){}
 
+=======
+>>>>>>> origin/nitzan
 void act(Simulation &simulation){
     if(Simulation::getPlan(planId)==nullptr){
         error("Plan" + std::toString(planID) + "not found!");
@@ -151,7 +154,10 @@ ChangePlanPolicy *clone() const{
 const string toString() const{
     return "the plan number is" + std::to_string(planId) + "and the new policy is" + newPolicy;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/nitzan
 //---------------------------PrintActionsLog---------------------------
 
 PrintActionsLog(); ///לא יודעת איך 
