@@ -21,6 +21,7 @@ class BaseAction{
     protected:
         void complete();
         void error(string errorMsg);
+        string StatToST(ActionStatus);
         const string &getErrorMsg() const;
 
     private:
@@ -45,6 +46,7 @@ class AddPlan : public BaseAction {
         void act(Simulation &simulation) override;
         const string toString() const override;
         AddPlan *clone() const override;
+
     private:
         const string settlementName;
         const string selectionPolicy;
@@ -86,6 +88,7 @@ class PrintPlanStatus: public BaseAction {
         void act(Simulation &simulation) override;
         PrintPlanStatus *clone() const override;
         const string toString() const override;
+        string printForActionlog();
     private:
         const int planId;
 };

@@ -25,7 +25,8 @@ class Simulation {
         void step();
         void close();
         void open();
-        SelectionPolicy* ToSelectionPolicy(const string& str);
+        SelectionPolicy* ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore);
+        int getplanCounter ();
 
     private:
         bool isRunning;

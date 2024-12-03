@@ -56,9 +56,9 @@ Simulation::Simulation(const string &configFilePath)
             std::string settlementName, selectionPolicy;
             ss >> settlementName >> selectionPolicy;
             //הופך את מה שהתקבל לטיפוס הראוי
-            Settlement& settlement = getSettlement(settlementName);
+            Settlement* settlement = this->getSettlement(settlementName);
             SelectionPolicy* policy = ToSelectionPolicy(selectionPolicy, 0, 0, 0);
-            addPlan(settlement, policy);
+            addPlan(*settlement, policy);
         }else {
             std::cerr << "Unknown entry type in config file: " << type << std::endl;
         }
@@ -71,7 +71,7 @@ SelectionPolicy* Simulation::ToSelectionPolicy(const string& str, int LifeQualit
     if (str == "nve") {
         return new NaiveSelection();
     } else if (str == "bal") {
-        return new BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore);
+        return new BalancedSelection(LifeQualityScore, EconomyScore, EnvironmentScore);
     } else if (str == "eco") {
         return new EconomySelection();
     } else if (str == "env") {
@@ -213,10 +213,10 @@ bool Simulation::addSettlement(Settlement *settlement){
 Settlement *Simulation::getSettlement(const string &settlementName){
     for(Settlement* sett : settlements){
         if((*sett).getName() == settlementName){
-            return *sett;
+            return sett;
         }
     }
-    return nullptr;);
+    return nullptr;
 }
 
 Plan &Simulation::getPlan(const int planID){
@@ -225,15 +225,12 @@ Plan &Simulation::getPlan(const int planID){
             return curr;
         }
     }
-    return nullptr;
 }
 
-void Simulation::start(){
+int Simulation::getplanCounter(){
+    return planCounter;
 }
 
-void Simulation::open(){
-    isRunning = true ;
-}
 
 void Simulation::step(){
     for(Plan plan : plans){
