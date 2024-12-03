@@ -13,6 +13,10 @@ FacilityType::FacilityType(const string &name, const FacilityCategory category, 
 FacilityType::FacilityType()
     :     FacilityType("", FacilityCategory::ECONOMY, 0, 0, 0, 0){}
 
+FacilityType &FacilityType::operator=(const FacilityType &other){//עושה חריגות בלי זה כשעושים אופרטור השמה בסימלושיין
+    return *this;
+}
+
 const string &FacilityType::getName() const{
     return name;
 }

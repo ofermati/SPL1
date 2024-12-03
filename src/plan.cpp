@@ -54,6 +54,11 @@ Plan::Plan(Plan&& other)
     }
 }
 
+//we don't really need one becuse settlement is const
+Plan& Plan::operator=(const Plan &other){
+    return *this;
+}
+
 const int Plan::getlifeQualityScore() const{
     return life_quality_score;
 }
@@ -183,6 +188,19 @@ const string Plan::toString() const{
     }
     return result;
 }
+
+const int Plan::GetwithUnderENVI () const {
+    return withUnderENVI;
+}
+
+const int Plan::GetwithUnderScoreECO() const {
+    return withUnderScoreECO;
+}
+
+const int Plan::GetwithUnderQUA() const {
+    return withUnderQUA;
+}
+
 
 Plan::~Plan() {
     for (Facility* facility : facilities) {

@@ -68,7 +68,7 @@ settlementName(settlementName), selectionPolicy(selectionPolicy){}
 void AddPlan::act(Simulation &simulation){
     Settlement *sett = simulation.getSettlement(settlementName);
     SelectionPolicy *policy = simulation.ToSelectionPolicy(selectionPolicy, 0, 0, 0); 
-    if(sett == nullptr | policy == nullptr){
+    if(sett == nullptr || policy == nullptr){
        error("”Cannot create this plan”");
     }
     simulation.addPlan(*sett, policy);

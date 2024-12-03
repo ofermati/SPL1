@@ -17,7 +17,7 @@ class Plan {
         //rule of 5:
         Plan(const Plan& other);
         Plan(Plan&& other);
-        Plan& operator=(const Plan& other)=delete;
+        Plan& operator=(const Plan& other);
         Plan& operator=(const Plan&& other) = delete;
 
         const int getlifeQualityScore() const;

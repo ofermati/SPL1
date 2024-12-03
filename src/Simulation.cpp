@@ -1,4 +1,3 @@
-#pragma once
 #include "Simulation.h"
 #include <fstream>
 #include <sstream>
@@ -96,6 +95,7 @@ Simulation& Simulation::operator=(const Simulation& other){
     if (this != &other) {
         isRunning = other.isRunning;
         planCounter = other.planCounter;
+        facilitiesOptions.clear();
         facilitiesOptions = other.facilitiesOptions;
         plans.clear(); 
         plans = other.plans;
@@ -114,7 +114,7 @@ Simulation& Simulation::operator=(const Simulation& other){
             settlements.push_back(new Settlement(*set));
         } 
 
-        return *this;  //מה זה? 
+        return *this; 
     } 
 }
 
@@ -276,7 +276,7 @@ bool Simulation::addSettlement(Settlement *settlement){
     return false;
  }
 
- const bool Simulation::isFacilityExists(FacilityType facility) const{
+const bool Simulation::isFacilityExists(FacilityType facility) const{
     for(FacilityType faci : facilitiesOptions){
         if(faci.getName() == facility.getName()){
             return true;
