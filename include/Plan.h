@@ -14,7 +14,12 @@ class Plan {
     public:
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
         Plan();
-        Plan(Plan& other);
+        //rule of 5:
+        Plan(const Plan& other);
+        Plan(Plan&& other);
+        Plan& operator=(const Plan& other)=delete;
+        Plan& operator=(const Plan&& other) = delete;
+
         const int getlifeQualityScore() const;
         const int getEconomyScore() const;
         const int getEnvironmentScore() const;
@@ -30,7 +35,9 @@ class Plan {
         const Settlement& getSttlement() const;// we added this one
         const SelectionPolicy* getSelectionPolicy() const;// we added this one       
         const string toString() const;
-         ~Plan(); 
+        string PlanStatusToString(PlanStatus status);
+        
+        ~Plan(); 
 
     private:
         int plan_id;

@@ -1,3 +1,4 @@
+#pragma once
 #include "Plan.h"
 #include <vector>
 #include "Facility.h"
@@ -6,7 +7,6 @@
 #include <iostream>  // for cout
 using namespace std; // to use cout directly without std::
 using std::vector;
-
 
 Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions):
     plan_id(planId) , settlement(settlement) , selectionPolicy(selectionPolicy) 
@@ -19,15 +19,13 @@ Plan::Plan():
     Plan(-1, Settlement(), nullptr, {})
     {}
 
-Plan::Plan(Plan &other)
-    : plan_id(other.plan_id),
-      settlement(other.settlement),
-      selectionPolicy(other.selectionPolicy->clone()),
-      status(other.status),
-      facilityOptions(other.facilityOptions),
-      life_quality_score(other.life_quality_score),
-      economy_score(other.economy_score),
-      environment_score(other.environment_score) {
+
+Plan::Plan(const Plan &other):
+    Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions){
+    status= other.status;
+    life_quality_score=other.life_quality_score;
+    economy_score=other.economy_score;
+    environment_score=other.environment_score;
     // Deep copy facilities
     for (auto facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
@@ -35,6 +33,24 @@ Plan::Plan(Plan &other)
     // Deep copy underConstruction facilities
     for (auto facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
+    }
+}
+
+Plan::Plan(Plan&& other)
+: Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions){
+    status= other.status;
+    life_quality_score=other.life_quality_score;
+    economy_score=other.economy_score;
+    environment_score=other.environment_score;
+    facilities = other.facilities;
+    underConstruction = other.underConstruction;
+
+    other.selectionPolicy = nullptr;//deleting other
+    for(Facility* fac : other.underConstruction){
+        fac = nullptr;
+    }
+    for(Facility* fac : other.facilities){
+        fac = nullptr;
     }
 }
 
@@ -82,20 +98,41 @@ void Plan::step() {
     }
 }
 
-
-
-void Plan::printStatus()
-{
-    string output;
-    if (status == PlanStatus::AVALIABLE)
-        output = "Available";
-    else
-        output = "Busy";
-    cout << output;
+std::string  Plan::PlanStatusToString(PlanStatus status) {
+    switch (status) {
+        case PlanStatus::AVALIABLE:
+            return "Available";
+        case PlanStatus::BUSY:
+            return "Busy";
+        default:
+            return "Unknown";
+    }
 }
 
-const vector<Facility *> &Plan::getFacilities() const
-{
+void Plan::printStatus() {
+    std::string output;
+    output += "PlanID: " + std::to_string(plan_id) + "\n";
+    output += "Settlement Name: " + settlement.getName() + "\n";
+    output += "Plan Status: " + PlanStatusToString(status) + "\n";
+    output += "SelectionPolicy: " + selectionPolicy->getName() + "\n";
+    output += "LifeQualityScore: " + std::to_string(getlifeQualityScore()) + "\n";
+    output += "EconomyScore: " + std::to_string(getEconomyScore()) + "\n";
+    output += "EnvironmentScore: " + std::to_string(getEnvironmentScore()) + "\n";
+
+    for (Facility *fac : facilities) {
+        output += "Facility: " + fac->getName() + " - OPERATIONAL\n";
+    }
+
+    for (Facility *fac : underConstruction) {
+        output += "Facility: " + fac->getName() + " - UNDER CONSTRUCTION\n";
+    }
+
+    std::cout << output;
+}
+
+
+
+const vector<Facility *> &Plan::getFacilities() const{
     return facilities;
 }
 
@@ -154,4 +191,5 @@ Plan::~Plan() {
     for (Facility* facility : underConstruction) {
         delete facility;
     }
+    delete selectionPolicy;
 }

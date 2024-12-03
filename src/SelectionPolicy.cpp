@@ -1,3 +1,4 @@
+#pragma once
 #include "SelectionPolicy.h"
 #include <vector>
 #include <algorithm> // std::max
@@ -34,7 +35,7 @@ NaiveSelection *NaiveSelection::clone() const
     return other;
 }
 
-const string NaiveSelection::getName(){
+const string NaiveSelection::getName() const{
     return "nve";
 }
 
@@ -42,6 +43,8 @@ const string NaiveSelection::getName(){
 
 BalancedSelection::BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore)
     : LifeQualityScore(LifeQualityScore), EconomyScore(EconomyScore), EnvironmentScore(EnvironmentScore) {}
+
+BalancedSelection::BalancedSelection():BalancedSelection(0,0,0){}
 
 const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType> &facilitiesOptions){
     if (facilitiesOptions.empty())
@@ -86,7 +89,7 @@ BalancedSelection *BalancedSelection::clone() const{
     return other;
 }
 
-const string BalancedSelection::getName(){
+const string BalancedSelection::getName() const{
     return "bal";
 }
 
@@ -117,7 +120,7 @@ EconomySelection *EconomySelection::clone() const
     return other;
 }
 
-const string EconomySelection::getName(){
+const string EconomySelection::getName() const{
     return "eco";
 }
 /*************************************** SustainabilitySelection *****************************************/
@@ -145,7 +148,7 @@ SustainabilitySelection *SustainabilitySelection::clone() const {
     return other;
 }
 
-const string SustainabilitySelection::getName(){
+const string SustainabilitySelection::getName() const{
     return "env";
 }
 

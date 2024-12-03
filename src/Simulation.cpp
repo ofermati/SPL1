@@ -1,3 +1,4 @@
+#pragma once
 #include "Simulation.h"
 #include <fstream>
 #include <sstream>
@@ -7,7 +8,6 @@
 #include "Action.cpp"
 
 using std::string;
-
 
 Simulation::Simulation(const string &configFilePath)
     :isRunning(true), planCounter(0){
@@ -56,9 +56,9 @@ Simulation::Simulation(const string &configFilePath)
             std::string settlementName, selectionPolicy;
             ss >> settlementName >> selectionPolicy;
             //הופך את מה שהתקבל לטיפוס הראוי
-            Settlement& settlement = getSettlement(settlementName);
+            Settlement* settlement = this->getSettlement(settlementName);
             SelectionPolicy* policy = ToSelectionPolicy(selectionPolicy, 0, 0, 0);
-            addPlan(settlement, policy);
+            addPlan(*settlement, policy);
         }else {
             std::cerr << "Unknown entry type in config file: " << type << std::endl;
         }
@@ -66,12 +66,87 @@ Simulation::Simulation(const string &configFilePath)
         file.close();
     }
 
+Simulation::Simulation(const Simulation& other):
+    isRunning(true), planCounter(other.planCounter), plans(other.plans), facilitiesOptions(other.facilitiesOptions) {
+    for (BaseAction *action : other.actionsLog){
+        actionsLog.push_back(action->clone());
+    }
+    for(Settlement *set : other.settlements){
+        settlements.push_back(new Settlement(*set));
+    }
+    for(Plan plan : other.plans){
+        plans.push_back(Plan(plan));
+    }
+}
+
+Simulation::Simulation(Simulation&& other):
+     isRunning(other.isRunning),planCounter(other.planCounter),actionsLog(other.actionsLog),plans(other.plans), settlements(other.settlements), facilitiesOptions(other.facilitiesOptions) {
+    for (BaseAction *action : other.actionsLog){
+        action = nullptr;
+    }
+    for(Settlement *set : other.settlements){
+        set = nullptr;
+    }
+    for(Plan plan : other.plans){
+        plan.setSelectionPolicy(nullptr);
+    }
+}
+
+Simulation& Simulation::operator=(const Simulation& other){
+    if (this != &other) {
+        isRunning = other.isRunning;
+        planCounter = other.planCounter;
+        facilitiesOptions = other.facilitiesOptions;
+        plans.clear(); 
+        plans = other.plans;
+        for (BaseAction* action : actionsLog) {
+            delete action;
+        }
+        actionsLog.clear(); 
+        for (BaseAction* action : other.actionsLog) {
+            actionsLog.push_back(action->clone());
+        } 
+        for (Settlement* set : settlements) {
+            delete set;
+        }
+        settlements.clear(); 
+        for (Settlement* set : other.settlements) {
+            settlements.push_back(new Settlement(*set));
+        } 
+
+        return *this;  //מה זה? 
+    } 
+}
+
+Simulation& Simulation::operator=(const Simulation&& other){
+    if (this != &other) {
+        isRunning = other.isRunning;
+        planCounter = other.planCounter;
+        facilitiesOptions = other.facilitiesOptions;
+        plans = other.plans;
+        for (BaseAction* action : other.actionsLog) {
+            actionsLog.push_back(action);
+            action = nullptr;
+        }
+        actionsLog.clear();  
+        for (Settlement* set : other.settlements) {
+            settlements.push_back(set);
+            set = nullptr;
+        }
+        for (Plan plan : other.plans) {
+            plans.push_back(plan);
+            plan.setSelectionPolicy(nullptr);
+        } 
+        return *this;  
+    } 
+}
+
 //turning string into selectionPolicy
 SelectionPolicy* Simulation::ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore) {
     if (str == "nve") {
         return new NaiveSelection();
     } else if (str == "bal") {
-        return new BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore);
+        return new BalancedSelection(LifeQualityScore, EconomyScore, EnvironmentScore);
     } else if (str == "eco") {
         return new EconomySelection();
     } else if (str == "env") {
@@ -201,7 +276,7 @@ bool Simulation::addSettlement(Settlement *settlement){
     return false;
  }
 
- bool Simulation::isFacilityExists(FacilityType facility){
+ const bool Simulation::isFacilityExists(FacilityType facility) const{
     for(FacilityType faci : facilitiesOptions){
         if(faci.getName() == facility.getName()){
             return true;
@@ -210,13 +285,22 @@ bool Simulation::addSettlement(Settlement *settlement){
     return false;   
  }
 
-Settlement *Simulation::getSettlement(const string &settlementName){
+Settlement *Simulation::getSettlement(const string &settlementName){//זה כבר פואינטר אז לא צריך להחזיר את הכתובת של זה
     for(Settlement* sett : settlements){
         if((*sett).getName() == settlementName){
-            return *sett;
+            return sett;
         }
     }
-    return nullptr;);
+    return nullptr;
+}
+
+FacilityType *Simulation::getFacility(const string &facilityName){//.זה כן פואינטר אז צריך להחזיר את הכתובת של זה
+    for(FacilityType fac : facilitiesOptions){
+        if(fac.getName() == facilityName){
+            return &fac;
+        }
+    }
+    return nullptr;
 }
 
 Plan &Simulation::getPlan(const int planID){
@@ -225,15 +309,12 @@ Plan &Simulation::getPlan(const int planID){
             return curr;
         }
     }
-    return nullptr;
 }
 
-void Simulation::start(){
+int Simulation::getplanCounter(){
+    return planCounter;
 }
 
-void Simulation::open(){
-    isRunning = true ;
-}
 
 void Simulation::step(){
     for(Plan plan : plans){
@@ -251,20 +332,35 @@ void Simulation::close(){
         output += "Settlement: " + (plan.getSttlement().toString()) + "\n";
         output += "LifeQuality_Score: " + std::to_string(plan.getlifeQualityScore()) + "\n";
         output += "Economy_Score: " + std::to_string(plan.getEconomyScore()) + "\n";
-        output += "Environment_Score: " + std::to_string(plan.getEnvironmentScore()) + "\n";
+        output += "Environment_Score: " + std::to_string(plan.getEnvironmentScore()) + "\n" + "\n";
 
     isRunning = false ;
     
-    for (Settlement *settlement : settlements){
+    for (Settlement *settlement : settlements){//עושות NEW בבנאי ולכן מוחקות
         delete settlement;
     }
     settlements.clear();
-    
-    for (Plan plan : plans){
-        delete plan.getSelectionPolicy();
-    }
     plans.clear();
+
     facilitiesOptions.clear();
 
-    //Actionlog need to delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for (BaseAction* action : actionsLog){
+        delete action;
+    }
+    actionsLog.clear();
+    std::cout << output << std::endl;
+    }
 }
+
+const string Simulation::PrintTheLogs() const{
+    string output= "";
+    for (BaseAction *action : actionsLog){
+        output += action->toString() + "\n";
+    }
+    return output;
+}
+
+Simulation::~Simulation(){
+    close();
+}
+

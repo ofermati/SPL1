@@ -13,6 +13,13 @@ class SelectionPolicy;
 class Simulation {
     public:
         Simulation(const string &configFilePath);
+
+        //rule of 5:
+        Simulation(const Simulation& other);
+        Simulation(Simulation&& other);
+        Simulation& operator=(const Simulation& other);
+        Simulation& operator=(const Simulation&& other);
+
         void start();
         void addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy);
         void addAction(BaseAction *action);
@@ -21,11 +28,16 @@ class Simulation {
         bool isSettlementExists(const string &settlementName);
         bool isFacilityExists(FacilityType facility);
         Settlement *getSettlement(const string &settlementName);
+        const FacilityType *getFacility(const string &facilityName) const;
         Plan &getPlan(const int planID);
         void step();
         void close();
         void open();
-        SelectionPolicy* ToSelectionPolicy(const string& str);
+        SelectionPolicy* ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore);
+        const string PrintTheLogs() const;
+        int getplanCounter();
+
+        ~Simulation();
 
     private:
         bool isRunning;
