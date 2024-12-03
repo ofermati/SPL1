@@ -28,7 +28,10 @@ class FacilityType {
         int getEconomyScore() const;
         FacilityCategory getCategory() const;
         string categoryToString (FacilityCategory type) const;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 58550330e11e908024ac43a3bde6b53e12290482
 
     protected:
         const string name;

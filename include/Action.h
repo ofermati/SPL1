@@ -21,7 +21,11 @@ class BaseAction{
     protected:
         void complete();
         void error(string errorMsg);
+<<<<<<< HEAD
         const string StatToST(ActionStatus status) const;
+=======
+        string StatToST(ActionStatus);
+>>>>>>> 58550330e11e908024ac43a3bde6b53e12290482
         const string &getErrorMsg() const;
 
     private:

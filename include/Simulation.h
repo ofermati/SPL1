@@ -34,10 +34,14 @@ class Simulation {
         void close();
         void open();
         SelectionPolicy* ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore);
+<<<<<<< HEAD
         const string PrintTheLogs() const;
         int getplanCounter();
 
         ~Simulation();
+=======
+        int getplanCounter ();
+>>>>>>> 58550330e11e908024ac43a3bde6b53e12290482
 
     private:
         bool isRunning;

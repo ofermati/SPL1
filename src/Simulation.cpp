@@ -292,6 +292,7 @@ Settlement *Simulation::getSettlement(const string &settlementName){//זה כב�
         }
     }
     return nullptr;
+<<<<<<< HEAD
 }
 
 FacilityType *Simulation::getFacility(const string &facilityName){//.זה כן פואינטר אז צריך להחזיר את הכתובת של זה
@@ -301,6 +302,8 @@ FacilityType *Simulation::getFacility(const string &facilityName){//.זה כן �
         }
     }
     return nullptr;
+=======
+>>>>>>> 58550330e11e908024ac43a3bde6b53e12290482
 }
 
 Plan &Simulation::getPlan(const int planID){
