@@ -26,7 +26,7 @@ class Simulation {
         bool addSettlement(Settlement *settlement);
         bool addFacility(FacilityType facility);
         bool isSettlementExists(const string &settlementName);
-        const bool isFacilityExists(FacilityType facility) const;
+        bool isFacilityExists(FacilityType facility);
         Settlement *getSettlement(const string &settlementName);
         FacilityType *getFacility(const string &facilityName);
         Plan &getPlan(const int planID);
@@ -34,14 +34,10 @@ class Simulation {
         void close();
         void open();
         SelectionPolicy* ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore);
-<<<<<<< HEAD
         const string PrintTheLogs() const;
         int getplanCounter();
 
         ~Simulation();
-=======
-        int getplanCounter ();
->>>>>>> 58550330e11e908024ac43a3bde6b53e12290482
 
     private:
         bool isRunning;

@@ -1,4 +1,3 @@
-#pragma once
 #include "Settlement.h"
 #include <string>
 #include <vector>

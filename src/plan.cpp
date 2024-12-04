@@ -1,4 +1,3 @@
-#pragma once
 #include "Plan.h"
 #include <vector>
 #include "Facility.h"
@@ -19,6 +18,30 @@ Plan::Plan():
     Plan(-1, Settlement(), nullptr, {})
     {}
 
+//----------------------------------------------------------------------------------------------------------
+Plan::Plan(const Settlement &settlement,const Plan &other)
+:Plan(other.plan_id, settlement, other.selectionPolicy->clone(),other.facilityOptions)
+{
+    status = other.status;
+    life_quality_score = other.getlifeQualityScore();
+    economy_score = other.getEconomyScore();
+    environment_score = other.getEnvironmentScore();
+    withUnderQUA = other.GetwithUnderQUA();
+    withUnderScoreECO = other.GetwithUnderScoreECO();
+    withUnderENVI = other. GetwithUnderENVI();
+
+
+    //Deep Copy of the Facility lists:
+    for(Facility* facility : other.underConstruction){
+       underConstruction.push_back(new Facility(*facility));
+    }
+
+    for(Facility* facility : other.facilities){
+       facilities.push_back(new Facility(*facility));
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------
 
 Plan::Plan(const Plan &other):
     Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions){
@@ -27,15 +50,15 @@ Plan::Plan(const Plan &other):
     economy_score=other.economy_score;
     environment_score=other.environment_score;
     // Deep copy facilities
-    for (auto facility : other.facilities) {
+    for (Facility *facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
     }
     // Deep copy underConstruction facilities
-    for (auto facility : other.underConstruction) {
+    for (Facility *facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
     }
 }
-
+//----------------------------------------------------------------------------------------------------------
 Plan::Plan(Plan&& other)
 : Plan(other.plan_id, other.settlement, other.selectionPolicy->clone(), other.facilityOptions){
     status= other.status;
@@ -54,11 +77,6 @@ Plan::Plan(Plan&& other)
     }
 }
 
-//we don't really need one becuse settlement is const
-Plan& Plan::operator=(const Plan &other){
-    return *this;
-}
-
 const int Plan::getlifeQualityScore() const{
     return life_quality_score;
 }
@@ -69,6 +87,18 @@ const int Plan::getEconomyScore() const{
 
 const int Plan::getEnvironmentScore() const{
     return environment_score;
+}
+
+const int Plan::GetwithUnderENVI() const {
+    return withUnderENVI;
+}
+
+const int Plan::GetwithUnderScoreECO() const {
+    return withUnderScoreECO;
+}
+
+const int Plan::GetwithUnderQUA() const {
+    return withUnderQUA;
 }
 
 void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy){
@@ -115,7 +145,7 @@ std::string  Plan::PlanStatusToString(PlanStatus status) {
 }
 
 void Plan::printStatus() {
-    std::string output;
+    std::string output = "";
     output += "PlanID: " + std::to_string(plan_id) + "\n";
     output += "Settlement Name: " + settlement.getName() + "\n";
     output += "Plan Status: " + PlanStatusToString(status) + "\n";
@@ -189,25 +219,15 @@ const string Plan::toString() const{
     return result;
 }
 
-const int Plan::GetwithUnderENVI () const {
-    return withUnderENVI;
-}
-
-const int Plan::GetwithUnderScoreECO() const {
-    return withUnderScoreECO;
-}
-
-const int Plan::GetwithUnderQUA() const {
-    return withUnderQUA;
-}
-
-
 Plan::~Plan() {
     for (Facility* facility : facilities) {
         delete facility;
     }
+    facilities.clear();
     for (Facility* facility : underConstruction) {
+        //std::cout << "Deleting facility : " << facility->getName() << "from plab:" << std::to_string(this->getPlanId()) << std::endl;
         delete facility;
     }
+    underConstruction.clear();
     delete selectionPolicy;
 }

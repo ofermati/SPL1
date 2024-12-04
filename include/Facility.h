@@ -20,7 +20,12 @@ class FacilityType {
     public:
         FacilityType(const string &name, const FacilityCategory category, const int price, const int lifeQuality_score, const int economy_score, const int environment_score);
         FacilityType();
-        FacilityType &operator=(const FacilityType &other); //הוספתי כי עושה חריגות בסימוליישן באופרטור השמה
+
+        
+        FacilityType& operator=(const FacilityType& other);//הוספתי עכשיו
+        FacilityType(const FacilityType& other) = default; //הוספי עכשיו
+        
+
         const string &getName() const;
         int getCost() const;
         int getLifeQualityScore() const;
@@ -28,10 +33,7 @@ class FacilityType {
         int getEconomyScore() const;
         FacilityCategory getCategory() const;
         string categoryToString (FacilityCategory type) const;
-<<<<<<< HEAD
 
-=======
->>>>>>> 58550330e11e908024ac43a3bde6b53e12290482
 
     protected:
         const string name;

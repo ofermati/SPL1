@@ -1,4 +1,3 @@
-#pragma once
 #include "SelectionPolicy.h"
 #include <vector>
 #include <algorithm> // std::max
@@ -11,8 +10,7 @@ using std::vector;
 
 /*************************************** NaiveSelection *****************************************/
 // Constrector:
-NaiveSelection::NaiveSelection() : lastSelectedIndex(0)
-{}
+NaiveSelection::NaiveSelection() : lastSelectedIndex(0){}
 
 // Methods:
 const FacilityType &NaiveSelection::selectFacility(const vector<FacilityType> &facilitiesOptions)
@@ -44,7 +42,7 @@ const string NaiveSelection::getName() const{
 BalancedSelection::BalancedSelection(int LifeQualityScore, int EconomyScore, int EnvironmentScore)
     : LifeQualityScore(LifeQualityScore), EconomyScore(EconomyScore), EnvironmentScore(EnvironmentScore) {}
 
-BalancedSelection::BalancedSelection():BalancedSelection(0,0,0){}
+BalancedSelection::BalancedSelection():BalancedSelection(0,0,0){} //בנאי דיפולטיבי
 
 const FacilityType &BalancedSelection::selectFacility(const vector<FacilityType> &facilitiesOptions){
     if (facilitiesOptions.empty())

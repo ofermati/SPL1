@@ -4,79 +4,86 @@
 #include <iostream>
 #include <stdexcept>
 #include "Auxiliary.cpp"
-#include "Action.cpp"
+#include "Action.h"
 
 using std::string;
-
+//------------------------------------------------------------------------------------------------------
 Simulation::Simulation(const string &configFilePath)
-    :isRunning(true), planCounter(0){
+    : isRunning(true), planCounter(0) {
 
-    std::ifstream file(configFilePath); //לפתוח את הקובץ שקיבלנו
-    if (!file.is_open()) { //לבדוק שהוא פתיח
-        throw std::runtime_error("Unable to open config file: " + configFilePath); //not sure if needed
+    std::ifstream file(configFilePath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open config file: " + configFilePath);
     }
 
     std::string line;
     while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '#') continue; //כדי להתעלם מהערות שהם הוסיפו או משורות ריקות
+        std::vector<std::string> arguments = Auxiliary::parseArguments(line);
+        if (arguments.empty() || arguments[0] == "#") continue;
 
-        std::istringstream ss(line); //אובייקט מיוחד שמאפשר לנו לחלץ מילה מילה מהשורה
-        std::string type; //נאתחל משתנה שישמש לאחסון המילה שנחלץ בכל פעם מן השורה
-        ss >> type; //שומר את המילה המחולצת כל פעם במשתנה TYPE
+        std::string type = arguments[0];
 
-        if(type == "settlement"){
-            if (line.size() != 3){
-                throw std::runtime_error("Elegal settlement in config file.");
+        if (type == "settlement") {
+            if (arguments.size() != 3) {
+                throw std::runtime_error("Illegal settlement in config file.");
             }
-            std::string name;
-            int settlementType;
-            ss >> name >> settlementType;
-            Settlement *settlement = new Settlement(name, static_cast<SettlementType>(settlementType)); //יוצרים ומוסיפים את היישוב לרשימת היישובים מבצעים קאסטינג כדי להפוך מint לenum
-            // המרה סטטית היא כזו שקוראת בזמן כתיבת הקימפול לפני שהתכנית ממש רצה
+            std::string name = arguments[1];
+            int settlementType = std::stoi(arguments[2]);
+            Settlement* settlement = new Settlement(name, static_cast<SettlementType>(settlementType));
             addSettlement(settlement);
-            //  if (!addSettlement(settlement)) {
-            //       delete settlement; //(אולי לא חייב) במקרה של כישלון, מוודאים שלא נשאר זיכרון יתום
-            //     }
+
+
         } else if (type == "facility") {
-            if (line.size() != 7){
-                throw std::runtime_error("Elegal facility in config file.");
-            }           
-            std::string name;
-            int category, price, lifeqImpact, ecoImpact, envImpact;
-            ss >> name >> category >> price >> lifeqImpact >> ecoImpact >> envImpact;
-            //הופך את מה שהתקבל מהמסמך למתקן ולאחר מכן מוסיף אותי
+            if (arguments.size() != 7) {
+                throw std::runtime_error("Illegal facility in config file.");
+            }
+            std::string name = arguments[1];
+            int category = std::stoi(arguments[2]);
+            int price = std::stoi(arguments[3]);
+            int lifeqImpact = std::stoi(arguments[4]);
+            int ecoImpact = std::stoi(arguments[5]);
+            int envImpact = std::stoi(arguments[6]);
             FacilityType facility(name, static_cast<FacilityCategory>(category), price, lifeqImpact, ecoImpact, envImpact);
-            addFacility(facility);
+            facilitiesOptions.push_back(facility);
 
         } else if (type == "plan") {
-            if (line.size() != 3){
-                throw std::runtime_error("Elegal plan in config file.");
+            if (arguments.size() != 3) {
+                throw std::runtime_error("Illegal plan in config file.");
             }
-            std::string settlementName, selectionPolicy;
-            ss >> settlementName >> selectionPolicy;
-            //הופך את מה שהתקבל לטיפוס הראוי
+            std::string settlementName = arguments[1];
+            std::string selectionPolicy = arguments[2];
             Settlement* settlement = this->getSettlement(settlementName);
             SelectionPolicy* policy = ToSelectionPolicy(selectionPolicy, 0, 0, 0);
             addPlan(*settlement, policy);
-        }else {
+        } else {
             std::cerr << "Unknown entry type in config file: " << type << std::endl;
         }
-        }
-        file.close();
     }
+    file.close();
+}
+
+
+//------------------------------------------------------------------------------------------------------
 
 Simulation::Simulation(const Simulation& other):
-    isRunning(true), planCounter(other.planCounter), plans(other.plans), facilitiesOptions(other.facilitiesOptions) {
+    isRunning(true), planCounter(other.planCounter), facilitiesOptions(other.facilitiesOptions) {
     for (BaseAction *action : other.actionsLog){
         actionsLog.push_back(action->clone());
     }
+
     for(Settlement *set : other.settlements){
-        settlements.push_back(new Settlement(*set));
+        // settlements.push_back(new Settlement(*set));
+        addSettlement(new Settlement(*set));
     }
-    for(Plan plan : other.plans){
-        plans.push_back(Plan(plan));
+
+    for(const Plan &plan : other.plans){
+        string settlName = plan.getSttlement().getName();
+        Settlement *newSettelemnet = getSettlement(settlName); 
+        Plan newPlan = Plan(*newSettelemnet,plan);
+        plans.push_back(newPlan);
     }
 }
+//------------------------------------------------------------------------------------------------------
 
 Simulation::Simulation(Simulation&& other):
      isRunning(other.isRunning),planCounter(other.planCounter),actionsLog(other.actionsLog),plans(other.plans), settlements(other.settlements), facilitiesOptions(other.facilitiesOptions) {
@@ -90,40 +97,45 @@ Simulation::Simulation(Simulation&& other):
         plan.setSelectionPolicy(nullptr);
     }
 }
+//------------------------------------------------------------------------------------------------------
 
 Simulation& Simulation::operator=(const Simulation& other){
     if (this != &other) {
         isRunning = other.isRunning;
         planCounter = other.planCounter;
-        facilitiesOptions.clear();
         facilitiesOptions = other.facilitiesOptions;
-        plans.clear(); 
-        plans = other.plans;
+
+        plans.clear();
+        for (Plan plan : other.plans){
+             plans.emplace_back(Plan(plan)); }
+
         for (BaseAction* action : actionsLog) {
-            delete action;
-        }
-        actionsLog.clear(); 
+            delete action; }
+        actionsLog.clear();
         for (BaseAction* action : other.actionsLog) {
-            actionsLog.push_back(action->clone());
-        } 
+            actionsLog.push_back(action->clone());} 
+
         for (Settlement* set : settlements) {
-            delete set;
-        }
+            delete set;}
         settlements.clear(); 
         for (Settlement* set : other.settlements) {
-            settlements.push_back(new Settlement(*set));
-        } 
+            settlements.push_back(new Settlement(*set));} 
 
-        return *this; 
+        return *this;
     } 
 }
+//------------------------------------------------------------------------------------------------------
 
 Simulation& Simulation::operator=(const Simulation&& other){
     if (this != &other) {
         isRunning = other.isRunning;
         planCounter = other.planCounter;
         facilitiesOptions = other.facilitiesOptions;
-        plans = other.plans;
+        for (Plan plan : other.plans){
+            plans.emplace_back(Plan(plan));
+        }
+
+        //plans=other.plans;
         for (BaseAction* action : other.actionsLog) {
             actionsLog.push_back(action);
             action = nullptr;
@@ -141,25 +153,32 @@ Simulation& Simulation::operator=(const Simulation&& other){
     } 
 }
 
+//------------------------------------------------------------------------------------------------------
+
+
 //turning string into selectionPolicy
 SelectionPolicy* Simulation::ToSelectionPolicy(const string& str, int LifeQualityScore, int EconomyScore, int EnvironmentScore) {
+    SelectionPolicy *sp = nullptr;
     if (str == "nve") {
-        return new NaiveSelection();
+        sp = new NaiveSelection();
     } else if (str == "bal") {
-        return new BalancedSelection(LifeQualityScore, EconomyScore, EnvironmentScore);
+        sp = new BalancedSelection(LifeQualityScore, EconomyScore, EnvironmentScore);
     } else if (str == "eco") {
-        return new EconomySelection();
+        sp = new EconomySelection();
     } else if (str == "env") {
-        return new SustainabilitySelection();
+        sp = new SustainabilitySelection();
     } else {
         return nullptr;}
 }
+
+//------------------------------------------------------------------------------------------------------
 
 void Simulation::start(){
     open();
     while(isRunning){
         string line;
-        std::cin >> line;
+        std::cout << "Waiting for input..." << std::endl;
+        std::getline(std::cin, line);
         vector<string> inputs = Auxiliary::parseArguments(line);
 
         if(inputs[0] == "step"){
@@ -241,7 +260,7 @@ void Simulation::start(){
 }
 
 void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy){
-    if(!isSettlementExists(settlement.getName())){
+    if(isSettlementExists(settlement.getName())==false){
         throw std::runtime_error("Cannot create this plan.");//לפי מה שכתבו בעבודה
     }
     plans.emplace_back(Plan(planCounter, settlement, selectionPolicy, facilitiesOptions));//בגלל שיוצרים חדש עשיתי EMPLACE
@@ -253,7 +272,7 @@ void Simulation::addAction(BaseAction *action){
 }
 
 bool Simulation::addSettlement(Settlement *settlement){
-    if(!isSettlementExists(settlement->getName())){
+    if(isSettlementExists(settlement->getName())){
         return false;
     }
     settlements.emplace_back(new Settlement(settlement->getName(), settlement->getType()));
@@ -276,7 +295,7 @@ bool Simulation::addSettlement(Settlement *settlement){
     return false;
  }
 
-const bool Simulation::isFacilityExists(FacilityType facility) const{
+ bool Simulation::isFacilityExists(FacilityType facility) {
     for(FacilityType faci : facilitiesOptions){
         if(faci.getName() == facility.getName()){
             return true;
@@ -304,7 +323,7 @@ FacilityType *Simulation::getFacility(const string &facilityName){//.זה כן �
 }
 
 Plan &Simulation::getPlan(const int planID){
-    for (Plan curr : plans){
+    for (Plan &curr : plans){
         if(curr.getPlanId() == planID){
             return curr;
         }
@@ -317,31 +336,31 @@ int Simulation::getplanCounter(){
 
 
 void Simulation::step(){
-    for(Plan plan : plans){
+    for(Plan &plan : plans){
         plan.step();
     }
 }
 
 void Simulation::open(){
     isRunning=true;
+    std::cout << "The simulation has started" << std::endl;
 }
 
 void Simulation::close(){
+    string output ="";
     for (Plan plan : plans) {
-        string output = "planID: " + std::to_string(plan.getPlanId()) + "\n";
+        output += "planID: " + std::to_string(plan.getPlanId()) + "\n";
         output += "Settlement: " + (plan.getSttlement().toString()) + "\n";
         output += "LifeQuality_Score: " + std::to_string(plan.getlifeQualityScore()) + "\n";
         output += "Economy_Score: " + std::to_string(plan.getEconomyScore()) + "\n";
         output += "Environment_Score: " + std::to_string(plan.getEnvironmentScore()) + "\n" + "\n";
-
+    }
     isRunning = false ;
-    
+    plans.clear();
     for (Settlement *settlement : settlements){//עושות NEW בבנאי ולכן מוחקות
         delete settlement;
     }
     settlements.clear();
-    plans.clear();
-
     facilitiesOptions.clear();
 
     for (BaseAction* action : actionsLog){
@@ -349,7 +368,6 @@ void Simulation::close(){
     }
     actionsLog.clear();
     std::cout << output << std::endl;
-    }
 }
 
 const string Simulation::PrintTheLogs() const{
@@ -363,4 +381,3 @@ const string Simulation::PrintTheLogs() const{
 Simulation::~Simulation(){
     close();
 }
-
